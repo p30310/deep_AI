@@ -817,8 +817,16 @@ html[data-theme='dark'] .heat-cell.l2 { background: #2f5c45; }
 /* ---------- #029 学习完成页（D-061/D-062；G5 规格 v1.0：零评价色、只陈述事实） ---------- */
 .finish-card { max-width: 480px; margin: 40px auto 0; padding: 36px; }
 .finish-card .fc-lead { font-size: 18px; line-height: 1.6; font-weight: 600; color: var(--ink); margin: 0 0 12px; }
-.finish-card .fc-count { font-size: 13px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 28px; }
-.finish-card .fc-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.finish-card .fc-count { font-size: 13px; line-height: 1.6; color: var(--ink-soft); margin: 0; }
+.finish-card .fc-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 28px 0 0; }
+/* #030 / R29-F02：恢复 #029 超范围删除、但 matchResult() 仍渲染的 3 条共享规则 */
+.finish-card .fc-emoji { font-size: 52px; }
+.finish-card h2 { font-size: 26px; margin: 12px 0 6px; }
+.finish-card .fc-rate { font-size: 16px; color: var(--ink-soft); margin-bottom: 6px; }
+/* #030 / R29-F05：reduced-motion 兜底（全局规则之外，对齐 G5 v1.1 §6/§8） */
+@media (prefers-reduced-motion: reduce) {
+  .finish-card .btn { transition: none; }
+}
 
 /* ---------- #027 长期答对情况（D-054/D-055；G5 规格 v1.2：比例行内、全令牌、零评价色） ---------- */
 .ret-lead { font-size: 15px; line-height: 1.75; color: var(--ink); max-width: 46em; }

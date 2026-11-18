@@ -1842,6 +1842,7 @@
 
   function renderFinish() {
     var s = state.session;
+    if (!s) { return; }
     var P = window.PHRASES.FINISH;
     var n = (s.words && s.words.length) || 0;   // 白名单①：总词数（脏会话兜底 0）
     var m = s.answered || 0;                    // 白名单②：记下数（作答+1/撤销-1，与评级无关；脏值兜底 0）

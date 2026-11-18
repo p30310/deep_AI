@@ -119,3 +119,9 @@ test('FIN-AC：同一会话两次渲染 DOM 逐字节相等（纯呈现、零写
   assert.equal(a, b, '两次渲染相等');
   assert.equal(JSON.stringify(s), before, '不修改会话对象');
 });
+
+/* ---------- ⑦ R29-F03：session 为 null 不抛错（G2 契约 §4/§7） ---------- */
+test('FIN-AC：state.session=null → renderFinish 早退、不抛 TypeError（R29-F03）', () => {
+  assert.doesNotThrow(() => renderWith(null), 's=null 必须早退，不得读 s.words 抛错');
+  assert.equal(renderWith(null), '', 's=null 不写入任何 DOM');
+});

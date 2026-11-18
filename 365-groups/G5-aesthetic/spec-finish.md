@@ -1,6 +1,6 @@
 # 学习完成页（#029）· 视觉规格（G5）
 
-> **v1.1 · 2026-11-18**（v1.1 按 G1 PRD 定稿 6 键＋空态不渲染 `.fc-count` 对齐：把按钮上方留白从 `.fc-count` 移交给 `.fc-actions margin-top`，修空态塌缩；举例改用 G1 实际文案；字段绑定改为 6 键）。基线：D-061 + `cards/#029.md` + `spec-retention.md` v1.2 文风 + 磁盘实测（`app.js:1843` / `app.css:672,185,200` / `phrases.js:313`）。行号会漂移，一律以类名/函数名定位；文案真源＝G1 PRD，本文只管形态与落地校验；**`word365/` 源码零改动**。
+> **v1.2 · 2026-11-18**（v1.1 按 G1 PRD 定稿 6 键＋空态不渲染 `.fc-count` 对齐：把按钮上方留白从 `.fc-count` 移交给 `.fc-actions margin-top`，修空态塌缩；举例改用 G1 实际文案；字段绑定改为 6 键）。基线：D-061 + `cards/#029.md` + `spec-retention.md` v1.2 文风 + 磁盘实测（`app.js:1843` / `app.css:672,185,200` / `phrases.js:313`）。行号会漂移，一律以类名/函数名定位；文案真源＝G1 PRD，本文只管形态与落地校验；**`word365/` 源码零改动**。
 > **结论先行**：完成页从「emoji+评级标题+正确率」的**成绩单**改为「一句会话事实 + 一句辅助事实 + 两按钮」的**收尾记录**；全部文字走 `--ink`/`--ink-soft`，无任何色相/图形表达表现好坏；空态读起来像「还没开始」而非「失败」。CSS 只末尾追加、复用令牌、不新增色值与断点。
 
 ## 0. 范围与不改边界
@@ -12,12 +12,12 @@ DOM 新形：`h2.fc-lead`（会话事实主句）→ `.fc-count`（辅助事实�
 | 元素 | 规格（追加覆盖；全部 `var()` 令牌，无新色值） |
 |---|---|
 | 卡面 `.finish-card` | 保留 `max-width:480px; text-align:center` 与 `.card` 的 border/radius/shadow/bg；追加 `margin:40px auto; padding:36px 30px`（原 60px/44px 收紧留白，去"庆典舞台"感） |
-| 主句 `h2.fc-lead` | `font-size:18px; line-height:1.6; font-weight:600; color:var(--ink); margin:0;`——18px 而非原 26px：26px 居中大标题＋emoji 是成绩单/庆祝语汇，18px 是会话陈述；`--ink` 而非 `--brand-deep`（绿＝成就语汇，事实不用）。有作答时文案＝`title+' · '+summary`（如「这一组做完了 · 共 8 词，已作答 8 个。」），空态＝`empty` 单句 |
+| 主句 `h2.fc-lead` | `font-size:18px; line-height:1.6; font-weight:600; color:var(--ink); margin:0;`——18px 而非原 26px：26px 居中大标题＋emoji 是成绩单/庆祝语汇，18px 是会话陈述；`--ink` 而非 `--brand-deep`（绿＝成就语汇，事实不用）。有作答时文案＝`title+' · '+summary`（如「这一组做完了 · 8 词，已作答 8 个。」），空态＝`empty` 单句 |
 | 辅助句 `.fc-count`（仅 answered>0 渲染） | `font-size:13px; line-height:1.6; color:var(--ink-soft); margin:12px 0 0;`——**把原 `--ink-faint`（白底 2.68:1，不达 AA）改为 `--ink-soft`（5.47:1）**，本卡唯一对比度修复点。上间距用 `margin-top` 而非压在主句 `margin-bottom` 上，空态无此元素时主句的 `margin:0` 不会留悬空空白 |
 | 按钮组 `.fc-actions` | `display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:28px 0 0;`——替换原内联 `style`，`flex-wrap` 保证 375 屏两钮不溢出。**留白由本组 `margin-top:28px` 承担（不依赖 `.fc-count`）**：故有作答态（主句→辅助句 12px→按钮 28px）与空态（主句→按钮 28px）按钮上方恒为 28px，版式不塌缩 |
 | 按钮本体 | **沿用 `.btn` / `.btn.btn-primary`，零新增样式**：`min-height:44px`、14px 字；主钮底色已由 #022 修为 `--cta-bg`/`--cta-ink`（亮 6.39:1 / 暗 7.98:1）。**禁止**写死 `#fff` 或 `background:var(--brand)+color:#fff`（D-045⑤） |
 | 层级陷阱 | `.fc-lead` 用 `h2` 标签时，`.finish-card h2`（26px，特异性 0,1,1）会被 `.finish-card .fc-lead`（0,2,0）覆盖——已验证覆盖成立；若 G0 改用 `<p>` 可彻底规避 |
-| 主句长度 | 「这一组做完了 · 共 8 词，已作答 8 个。」约 18 字，18px 居中在 420px 内容宽（480−60 padding）下约 1 行，空态单句约 20 字可能折 2 行——均允许折行，行高 1.6 已留余量，不缩字号 |
+| 主句长度 | 「这一组做完了 · 8 词，已作答 8 个。」约 18 字，18px 居中在 420px 内容宽（480−60 padding）下约 1 行，空态单句约 20 字可能折 2 行——均允许折行，行高 1.6 已留余量，不缩字号 |
 
 ## 2. 零评价色：如何落地、为何不用颜色区分表现
 - **落地**：全卡只有三档中性文字色——主句/辅助句 `--ink` 与 `--ink-soft`、卡面 `--card`/边 `--line`；主按钮的绿是**全站统一操作令牌** `--cta-bg`，不随对错变化，故它表达「这是主操作」而非「你表现好」。暗色由 `data-theme` 自动翻转令牌，零手写色值。
@@ -73,3 +73,7 @@ DOM 新形：`h2.fc-lead`（会话事实主句）→ `.fc-count`（辅助事实�
 **断点**：不新造；`flex-wrap` 已覆盖 375 窄屏，主句 18px 不缩。
 **字段绑定（已对齐 G1 PRD 定稿 6 键，G5 不越权改逐字）**：`phrases.js` 新增 `FINISH` 命名空间——`title`「这一组做完了」、`summary(n,m)`「{n} 词，已作答 {m} 个。」、`count`「作答已保存。」、`btnHome`「回首页」、`btnStats`「看统计」、`empty`「这一组没有作答，也没有需要记下的内容。」。视图零硬编码中文。**比例一律不显示（G1 方案 C）**，与本文禁 `%` 一致。
 **移交**——**G1**：6 键与两行 DOM 绑定已全额采纳，无回填项。**G2**：完成页只读 `state.session` 的 `answered`/`correct`/`words.length`，不写库、不新增 db 键；空态判据用 `answered>0` 决定是否渲染 `.fc-count`。**G0**：按 §1 数值与 §8 CSS 逐字落地；注意 §0 的边界提醒、§1 的对比度修复与空态 28px 留白。**G5 无待办项。**
+
+## 版本与修订记录
+
+v1.2 | 2026-11-18 | #030 / R29-F06：删 §1/§20 两处「共」字，与 D-063「无共」终裁及 PRD v1.1 对齐；其余逐字不动 | G5

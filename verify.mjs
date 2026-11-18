@@ -5,7 +5,8 @@
  *   node verify.mjs
  *
  * 跑 4 条门禁并**校验期望值**——不是"跑完没报错就算过"，而是核对项数是否等于基线。
- * 基线：25 测试文件 / 304 项 0 失败 / 460 词 / qa 34/0（#028 后）。
+ * 基线：26 测试文件 / 311 项 0 失败 / 460 词 / qa 34/0（#030 补修后实测）。
+ * 历史值：#028 后 25 文件 / 304 项、#029 后 26 文件 / 310 项（按惯例保留，不回改）。
  * 若基线因新卡变化，请同步改 EXPECT 里的数字（并在卡片里记录）。
  */
 import { execFileSync } from 'node:child_process';
@@ -17,7 +18,7 @@ const APP = path.join(ROOT, 'word365');
 
 const EXPECT = {
   testFiles: 26,
-  testItems: 310,   // 含 check-data / qa 各 1 项（#029 +6：ui.test.finish）
+  testItems: 311,   // 含 check-data / qa 各 1 项（#030 +1：ui.test.finish 的 s=null case）
   words: 460,
   qaPass: 34,
 };
