@@ -1842,22 +1842,21 @@
 
   function renderFinish() {
     var s = state.session;
-    var rate = s.answered > 0 ? s.correct / s.answered : 0;
-    var pct = Math.round(rate * 100);
-    var emoji = rate >= 0.9 ? '🎉' : (rate >= 0.7 ? '👍' : '💪');
-    var title = rate >= 0.9 ? '完美！' : (rate >= 0.7 ? '不错！' : '加油！');
+    var P = window.PHRASES.FINISH;
+    var n = (s.words && s.words.length) || 0;   // 白名单①：总词数（脏会话兜底 0）
+    var m = s.answered || 0;                    // 白名单②：记下数（作答+1/撤销-1，与评级无关；脏值兜底 0）
+    var lead = m > 0 ? (P.title + ' · ' + P.summary(n, m)) : P.empty;
     $('#studyBody').innerHTML =
       '<div class="finish-card card">' +
-        '<div class="fc-emoji">' + emoji + '</div>' +
-        '<h2>' + title + '</h2>' +
-        '<div class="fc-rate">正确率 ' + pct + '%（答对 ' + s.correct + ' / 作答 ' + s.answered + '）</div>' +
-        '<div class="fc-count">本组共 ' + s.words.length + ' 词 · 记录已保存</div>' +
-        '<div style="display:flex;gap:10px;justify-content:center">' +
-          '<button class="btn btn-primary" data-sact="finish-home">回首页</button>' +
-          '<button class="btn" data-sact="finish-stats">看统计</button>' +
+        '<h2 class="fc-lead">' + esc(lead) + '</h2>' +
+        (m > 0 ? '<div class="fc-count">' + esc(P.count) + '</div>' : '') +
+        '<div class="fc-actions">' +
+          '<button class="btn btn-primary" data-sact="finish-home">' + esc(P.btnHome) + '</button>' +
+          '<button class="btn" data-sact="finish-stats">' + esc(P.btnStats) + '</button>' +
         '</div>' +
       '</div>';
   }
+
 
   /* ---------- 学习页统一点击分发 ---------- */
 

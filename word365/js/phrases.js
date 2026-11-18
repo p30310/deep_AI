@@ -310,6 +310,17 @@
     noAudio: '本设备无法播放发音，可点「看中文提示」继续'
   };
 
+  /* ---------- #029 学习完成页逐字文案（D-061/D-062；G1 PRD §5 唯一真源） ----------
+   * 红线：无评分/正确率/达标/评级/鼓励句；只陈述会话事实；比例只在统计页一处出现。 */
+  var FINISH = {
+    title: '这一组做完了',
+    summary: function (n, m) { return n + ' 词，已作答 ' + m + ' 个。'; },
+    count: '作答已保存。',
+    btnHome: '回首页',
+    btnStats: '看统计',
+    empty: '这一组没有作答，也没有需要记下的内容。'
+  };
+
   /* ---------- #025 今日挑战逐字文案（D-048；G1 PRD §5 为唯一真源，实现不得内联改字） ----------
    * 红线：无得分/正确率/达标/评级/分数；不催促、不评价；结果句必须带「学习进度没有改动」。
    */
@@ -375,7 +386,8 @@
     RETENTION: RETENTION,
     CTX: CTX,
     // #025 今日挑战（纯加法）
-    CHALLENGE: CHALLENGE
+    CHALLENGE: CHALLENGE,
+    FINISH: FINISH
   };
 
   global.PHRASES = PHRASES;
