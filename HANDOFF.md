@@ -139,7 +139,29 @@ node verify.mjs          # 一键跑 4 条门禁并校验期望值，应输出 P
 
 ---
 
-## 9. 文档地图
+## 9. 仓库操作（提交前看一眼）
+
+```bash
+cd /e/WorkBudy_WorkSpace
+git remote -v                          # origin = https://github.com/p30310/deep_AI.git（**公开仓库**）
+git status --short                     # 提交前确认没有其他项目文件混进来
+node verify.mjs && git add -A && git commit -m "..."
+git push origin main                   # 双向确认：git ls-remote origin main == git rev-parse HEAD
+```
+
+| 项 | 事实 |
+|---|---|
+| 远端 | `https://github.com/p30310/deep_AI.git`，分支 **`main`**（本地默认分支已由 `master` 改名） |
+| 可见性 | **公开**——不要推任何个人数据、密钥、求职记录、会话日志（`.workbuddy/` 已在 `.gitignore`） |
+| 历史 | 曾把无关文件误推公开历史，已压成单提交并强推清理；**不要 `--force` 除非明确知道后果** |
+| 回滚 | 内容级回滚用 `git revert <commit>`（新提交，不改写历史）；本地误删文件用 `git checkout -- <path>` |
+| 推送失败 | 若 `schannel: failed to receive handshake`，先 `curl -sS https://github.com` 确认是网络还是 git；网络恢复后原命令重跑即可（2026-11-18 实际发生过一次，约 4 小时后自愈） |
+| 凭据 | Git for Windows 会提示 `credential-manager-core is not a git command`，属环境噪声；推送仍成功，以 `git ls-remote` 为准 |
+
+---
+
+## 10. 文档地图
+
 
 
 | 想知道什么 | 读哪里 |
