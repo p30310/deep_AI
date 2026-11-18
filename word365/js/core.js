@@ -13,6 +13,17 @@
   /** 固定复习阶梯（天） */
   var LADDER_DAYS = [1, 2, 4, 7, 15, 30, 60];
 
+  /**
+   * #031 阶段一 · 遗忘曲线观测契约（D-065）：显式化既有阶梯/分支/分段，数值零改动。
+   * ladder 与 L14 同源（禁止另写死一份）；segments 顺序即 baselineReport 输出顺序。
+   */
+  var INTERVAL_CONTRACT = {
+    ladder: LADDER_DAYS.slice(),
+    branches: { unknown: '10m', fuzzy: 'nextDay+4h' },
+    newWord: 'new',
+    segments: ['new', '10m', '1d', '2d', '4d', '7d', '15d', '30d', '60d', 'other']
+  };
+
   /** 单次作答预计耗时（秒），±300 词收敛公式中用于估算每日时长（I-AC3） */
   var SEC_PER_WORD = 35;
 
@@ -69,10 +80,13 @@
   }
 
   function defaultDB() {
+    /* D-067：defaultDB 必须纯确定（不读时钟）——每次调用都取 now() 会让 MODE-AC10
+     * 比较两个独立 defaultDB 时因毫秒差偶发失败（HEAD 版即有）。真实时间戳由
+     * persist() 首次落盘时补：createdAt 只在仍为 0 时写一次。 */
     return {
       schema: SCHEMA,
-      createdAt: now(),
-      updatedAt: now(),
+      createdAt: 0,
+      updatedAt: 0,
       settings: defaultSettings(),
       petState: { totalBites: 0, pos: null },
       books: [],
@@ -150,7 +164,8 @@
       lastRating: '',
       srcBook: srcBook || '',
       graduated: false,  // 方案 J 测试批量毕业标记（区别于 SRS 自然 st==='known'）
-      evts: []           // #015 逐次作答事件（观测加法层：只采集与只读，不改既有字段语义）
+      evts: [],          // #015 逐次作答事件（观测加法层：只采集与只读，不改既有字段语义）
+      s1: []             // #031 阶段一观测事件（D-065：与 evts 并列的词级新键，不改 SCHEMA/evts 四键）
     };
   }
 
@@ -184,7 +199,7 @@
     return (typeof value === 'string' && MODE_LABELS_ATTRIB.indexOf(value) >= 0) ? value : null;
   }
 
-  function rateWord(db, key, rating, mode) {
+  function rateWord(db, key, rating, mode, obs) {
     var absent = !db.words[key];
     if (absent) {
       db.words[key] = newRecord(key.indexOf('w::') === 0 ? key.slice(3) : key);
@@ -248,6 +263,38 @@
       rating: rating,
       interval: rec.due - t,
       type: attribMode(mode)
+    });
+
+    // #031 阶段一（D-065）：与 evts 并列的词级 s1 观测事件。全程复用 L193 的 t（禁止二次 now()）。
+    // obs 仅在合法值域内覆盖双信号，非法/缺失回落默认推导；prevIvl 在 push 前读上一条 newIvl。
+    if (!Array.isArray(rec.s1)) { rec.s1 = []; }
+    var o = (obs && typeof obs === 'object') ? obs : null;
+    var s1Self = (o && (o.selfRating === 'know' || o.selfRating === 'fuzzy' || o.selfRating === 'unknown'))
+      ? o.selfRating : rating;
+    var s1Retrieved = (o && typeof o.retrievedOk === 'boolean') ? o.retrievedOk : (rating === 'know');
+    var lastS1 = rec.s1.length ? rec.s1[rec.s1.length - 1] : null;
+    var prevIvl = (lastS1 && typeof lastS1 === 'object' && typeof lastS1.newIvl === 'number') ? lastS1.newIvl : 0;
+    /* D-066 / G0 裁决 方案 2'：s1 内三个「毫秒差值」字段归整到整秒——
+     * 既有全库 JSON 快照断言只用 /\d{13}/ 归一时间戳，8 位毫秒差会跨会话抖动；
+     * at/actualAt/plannedDue 仍是原始 13 位时间戳（被既有正则归一），不在此时钟。
+     * 分档 seg 仍用归整前的 prevIvl（误差 ≤500ms，阶梯最短 1 天）。 */
+    var s1Sec = function (ms) { return Math.round(ms / 1000) * 1000; };
+    var rawLateMs = origDue > 0 ? Math.max(0, t - origDue) : 0;
+    var rawNewIvl = rec.due - t;
+    rec.s1.push({
+      k: key,
+      plannedDue: origDue,
+      at: t,
+      actualAt: t,
+      lateMs: s1Sec(rawLateMs),
+      prevIvl: s1Sec(prevIvl),
+      newIvl: s1Sec(rawNewIvl),
+      seg: intervalSeg(prevIvl, wasFresh),
+      branch: rating === 'fuzzy' ? 'nextDay+4h' : (rating === 'unknown' ? '10m' : null),
+      selfRating: s1Self,
+      retrievedOk: s1Retrieved,
+      first: wasFresh,
+      cohort: 'fixed'
     });
 
     return snap;
@@ -378,7 +425,10 @@
   var saveTimer = null;
 
   function persist(db) {
-    db.updatedAt = now();
+    /* D-067：单次取时；createdAt 仅在首次落盘时补一次（defaultDB 不再读时钟）。 */
+    var t = now();
+    if (!db.createdAt) { db.createdAt = t; }
+    db.updatedAt = t;
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(DB_KEY, JSON.stringify(db));
@@ -537,6 +587,8 @@
       if (wr.graduated == null) { wr.graduated = false; }
       // #015 步骤 B：evts 缺失/非数组 → 补 []；已是数组（含非空）原样保留，不覆盖、不裁剪
       if (!Array.isArray(wr.evts)) { wr.evts = []; }
+      // #031（D-066 / G0 裁决 方案 2'）：ensureSchema 不补 s1——空库/老库经此函数后
+      // 记录键集与旧版逐字节一致（护 UI 全库 JSON 快照断言）；s1 由 rateWord 惰性创建。
     }
     // #015 步骤 C：db.schema 绝不赋值、不抬 4、不加版本标记（恒 3）
     // #005 T01/F4：days[dk].byType（最小分桶，D-004 精确化）存在则校验归一、不存在不强补（幂等、SCHEMA 恒 3）
@@ -1147,7 +1199,10 @@
   function applyGraduation(db, level) {
     var books = (db.books || []).filter(function (b) { return b.builtin; });
     var keys = [], n = 0;
-    var farFuture = now() + 365 * DAY_MS; // 远未来 due（毕业词不再进入复习）
+    /* D-068：同一决策只取一次当前时间——testedAt 与 reestimateAt 若分两次 now()，
+     * 跨毫秒边界会让 `reestimateAt - testedAt === 14*DAY` 偶发失败（C3 单次基准）。 */
+    var t = now();
+    var farFuture = t + 365 * DAY_MS; // 远未来 due（毕业词不再进入复习）
     for (var b = 0; b < books.length && n < level; b++) {
       var ws = books[b].words || [];
       for (var i = 0; i < ws.length && n < level; i++) {
@@ -1169,9 +1224,9 @@
     }
     db.baseline = {
       level: level,
-      testedAt: now(),
+      testedAt: t,
       words: keys,
-      reestimateAt: now() + 14 * DAY_MS
+      reestimateAt: t + 14 * DAY_MS
     };
     return keys;
   }
@@ -2085,10 +2140,129 @@
     return rec;
   }
 
+  /* ---------- #031 阶段一 · 遗忘曲线观测纯函数（D-065；只读、不改入参、不读 now） ---------- */
+
+  /**
+   * 摊平各词 s1[]：按词键字典序遍历，逐元素浅拷贝并注入词键 k（覆盖脏 k）。
+   * 纯只读：不写 db、不原地改任何 s1 数组或元素；db/words 缺失或非对象 → []。
+   */
+  function collectS1Events(db) {
+    var out = [];
+    if (!db || typeof db !== 'object' || !db.words || typeof db.words !== 'object' || Array.isArray(db.words)) { return out; }
+    var keys = Object.keys(db.words);
+    for (var i = 0; i < keys.length; i++) {
+      var rec = db.words[keys[i]];
+      if (!rec || typeof rec !== 'object' || Array.isArray(rec)) { continue; }
+      var arr = Array.isArray(rec.s1) ? rec.s1 : [];
+      for (var j = 0; j < arr.length; j++) {
+        var e = arr[j];
+        var c = (e && typeof e === 'object') ? Object.assign({}, e) : {};
+        c.k = keys[i];
+        out.push(c);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * 排定间隔（毫秒）→ 段名。首次作答恒 'new'；非有限/非正 → '10m'；
+   * 否则按 round(ivl/DAY_MS) 归阶梯天段，非阶梯 → 'other'。
+   */
+  function intervalSeg(ivl, isFirst) {
+    if (isFirst === true) { return INTERVAL_CONTRACT.newWord; }
+    if (typeof ivl !== 'number' || !isFinite(ivl) || ivl <= 0) { return '10m'; }
+    var d = Math.round(ivl / DAY_MS);
+    if (d === 0) { return '10m'; }
+    if (LADDER_DAYS.indexOf(d) >= 0) { return d + 'd'; }
+    return 'other';
+  }
+
+  /**
+   * 十段保持率基线：同词同段只取 at 最早一次；retrievedOk 非 boolean 整条跳过；
+   * 空段 retained=null（非 0）。与 retentionStats「取最近一次」口径相反，互不包装。
+   */
+  function baselineReport(events) {
+    var segs = INTERVAL_CONTRACT.segments;
+    var stat = Object.create(null), seen = Object.create(null), i;
+    for (i = 0; i < segs.length; i++) { stat[segs[i]] = { count: 0, retained: 0 }; }
+    var arr = Array.isArray(events) ? events : [];
+    var cleaned = [];
+    for (i = 0; i < arr.length; i++) {
+      var e = arr[i];
+      if (!e || typeof e !== 'object') { continue; }
+      if (typeof e.at !== 'number' || !isFinite(e.at)) { continue; }
+      if (segs.indexOf(e.seg) < 0) { continue; }
+      if (typeof e.retrievedOk !== 'boolean') { continue; }
+      cleaned.push(e);
+    }
+    cleaned.sort(function (a, b) { return a.at - b.at; }); // ES2019 稳定排序；slice 语义已由 cleaned 保证不改入参
+    for (i = 0; i < cleaned.length; i++) {
+      var ev = cleaned[i];
+      var k = (typeof ev.k === 'string') ? ev.k : '';
+      var dedup = k + '|' + ev.seg;
+      if (seen[dedup]) { continue; }
+      seen[dedup] = true;
+      stat[ev.seg].count += 1;
+      if (ev.retrievedOk === true) { stat[ev.seg].retained += 1; }
+    }
+    var out = [];
+    for (i = 0; i < segs.length; i++) {
+      var s = stat[segs[i]];
+      out.push({
+        seg: segs[i],
+        sampleSize: s.count,
+        retainedCount: s.retained,
+        retained: s.count > 0 ? s.retained / s.count : null
+      });
+    }
+    return out;
+  }
+
+  /** 假认识候选：selfRating==='know' 且 retrievedOk===false（严格；D-069 与 rating 三值统一），只读不改词状态。 */
+  function falseKnownCandidates(events) {
+    var out = [];
+    var arr = Array.isArray(events) ? events : [];
+    for (var i = 0; i < arr.length; i++) {
+      var e = arr[i];
+      if (!e || typeof e !== 'object') { continue; }
+      if (e.selfRating === 'know' && e.retrievedOk === false) {
+        out.push({ k: e.k || '', at: e.at || 0, seg: e.seg || 'other' });
+      }
+    }
+    return out;
+  }
+
+  /**
+   * 到期队列快照：纯只读推导 due<=at && st!=='known' 的词键，字典序；
+   * at 必填、不读 now()；非有限 at 按 0 处理（keys 必空）；不写 days、不参与 todayPlan。
+   */
+  function dueSnapshot(db, at) {
+    var t = (typeof at === 'number' && isFinite(at)) ? at : 0;
+    var out = { at: t, keys: [], count: 0 };
+    if (!db || typeof db !== 'object' || !db.words || typeof db.words !== 'object' || Array.isArray(db.words)) { return out; }
+    var keys = Object.keys(db.words);
+    for (var i = 0; i < keys.length; i++) {
+      var r = db.words[keys[i]];
+      if (!r || typeof r !== 'object') { continue; }
+      if (typeof r.due !== 'number' || !isFinite(r.due) || r.due <= 0 || r.due > t || r.st === 'known') { continue; }
+      out.keys.push(keys[i]);
+    }
+    out.keys.sort();
+    out.count = out.keys.length;
+    return out;
+  }
+
   var Core = {
     DB_KEY: DB_KEY,
     SCHEMA: SCHEMA,
     LADDER_DAYS: LADDER_DAYS,
+    // #031 阶段一（D-065）：观测契约与 5 个纯函数（追加导出，既有导出零改动）
+    INTERVAL_CONTRACT: INTERVAL_CONTRACT,
+    collectS1Events: collectS1Events,
+    intervalSeg: intervalSeg,
+    baselineReport: baselineReport,
+    falseKnownCandidates: falseKnownCandidates,
+    dueSnapshot: dueSnapshot,
     DAY_MS: DAY_MS,
     SEC_PER_WORD: SEC_PER_WORD,
     STATUS_TEXT: STATUS_TEXT,
