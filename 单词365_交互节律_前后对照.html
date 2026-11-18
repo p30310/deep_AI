@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单词365 · 交互节律前后对照</title>
+<style>
+  :root{
+    --paper:#F4F1E9; --leaf:#FBF9F3; --ink:#1E3A30; --ink2:#3F534A;
+    --ink3:#5C655E; --rule:#DCD6C8; --strong:#C4BDA9; --seal:#9C3B2E;
+    --gold:#A8874E; --cn:"Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+    --lat:"EB Garamond","Cormorant Garamond",Georgia,serif;
+    --ease:cubic-bezier(.22,.7,.3,1);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei UI",sans-serif;
+    font-size:14px;line-height:1.75;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n2)' opacity='.6'/%3E%3C/svg%3E");}
+  .wrap{max-width:1120px;margin:0 auto;padding:44px 28px 70px;position:relative}
+  header{border-bottom:1px solid var(--strong);padding-bottom:22px;margin-bottom:26px}
+  .kicker{font-family:var(--lat);letter-spacing:.26em;color:var(--gold);font-size:11px;text-transform:uppercase}
+  h1{font-family:var(--cn);font-weight:400;font-size:34px;letter-spacing:.1em;margin:12px 0 8px}
+  .sub{color:var(--ink3);font-size:13px;letter-spacing:.04em;max-width:760px}
+  .seal{display:inline-block;border:1px solid var(--seal);color:var(--seal);font-family:var(--cn);
+    font-size:11px;letter-spacing:.18em;padding:3px 9px;margin-left:12px;vertical-align:middle}
+
+  .clock{display:flex;gap:0;border:1px solid var(--rule);background:var(--leaf);margin:24px 0 28px;flex-wrap:wrap}
+  .clock>div{flex:1 1 140px;padding:14px 18px;border-right:1px solid var(--rule)}
+  .clock>div:last-child{border-right:0}
+  .clock b{display:block;font-family:var(--lat);font-size:26px;font-weight:400;line-height:1.1}
+  .clock span{display:block;font-size:11px;color:var(--ink3);letter-spacing:.1em;margin-top:5px}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:820px){.cols{grid-template-columns:1fr}}
+  .panel{background:var(--leaf);border:1px solid var(--rule);border-top:2px solid var(--strong)}
+  .panel.new{border-top-color:var(--seal)}
+  .ph{padding:13px 18px;border-bottom:1px solid var(--rule);display:flex;align-items:baseline;gap:12px}
+  .ph b{font-family:var(--cn);font-weight:500;font-size:17px;letter-spacing:.08em}
+  .ph span{font-size:11px;color:var(--ink3);letter-spacing:.06em}
+  .panel.new .ph b{color:var(--seal)}
+  .pb{padding:16px 18px 18px}
+
+  .pane{height:238px;overflow-y:auto;border:1px solid var(--rule);background:var(--paper);position:relative;padding:0 14px 14px}
+  .pane.old{scroll-behavior:smooth}
+  .pane.new{scroll-behavior:auto;scrollbar-width:thin;scrollbar-color:var(--strong) transparent}
+  .pane.new::-webkit-scrollbar{width:8px}
+  .pane.new::-webkit-scrollbar-thumb{background:var(--strong);border:2px solid var(--paper)}
+  .pagerow{display:flex;justify-content:space-between;align-items:baseline;padding:13px 0 7px;border-bottom:1px solid var(--rule)}
+  .pagerow b{font-family:var(--cn);font-weight:400;font-size:16px;letter-spacing:.06em}
+  .pagerow i{font-family:var(--lat);font-size:11px;color:var(--gold);font-style:italic;letter-spacing:.1em}
+  .filler{color:var(--ink3);font-size:12px;line-height:2.05;padding:10px 0}
+  .filler em{font-style:normal;color:var(--ink2);border-bottom:1px solid var(--rule)}
+
+  .btn{display:inline-block;padding:9px 16px;border:1px solid var(--strong);background:var(--leaf);
+    color:var(--ink);font-size:12px;letter-spacing:.06em;cursor:pointer;font-family:inherit}
+  .btn.pri{background:var(--ink);color:var(--leaf);border-color:var(--ink)}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+  /* —— 旧节律：v2.0 通用 SaaS 反馈语法 —— */
+  .old .btn{transition:transform 160ms var(--ease),box-shadow 160ms var(--ease),border-color 160ms var(--ease)}
+  .old .btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px -8px rgba(30,58,48,.45);border-color:var(--ink)}
+  .old .btn:active{transform:scale(.985)}
+  .old .cta{display:block;width:100%;text-align:center;padding:12px;margin-top:14px;background:var(--ink);color:var(--leaf);
+    border:1px solid var(--ink);cursor:pointer;font-size:13px;letter-spacing:.08em;
+    transition:transform 160ms var(--ease),box-shadow 160ms var(--ease)}
+  .old .cta:hover{transform:translateY(-1px);box-shadow:0 16px 30px -14px rgba(30,58,48,.7)}
+  .old .pane.flash{animation:oldIn 240ms var(--ease)}
+  @keyframes oldIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .old .toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:var(--leaf);
+    padding:8px 15px;font-size:12px;border-radius:999px;white-space:nowrap;opacity:0;pointer-events:none;
+    box-shadow:0 12px 26px -16px rgba(0,0,0,.7)}
+  .old .toast.on{animation:oldToast 240ms var(--ease) forwards}
+  @keyframes oldToast{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+  .old .rule{height:2px;background:var(--ink);width:14px;margin:8px auto 0}
+
+  /* —— 新节律：Folio Motion —— */
+  .new .btn{transition:color 240ms var(--ease),background-color 240ms var(--ease),border-color 240ms var(--ease),filter 120ms var(--ease)}
+  .new .btn:hover{transform:none;box-shadow:none;background:var(--rule);border-color:var(--strong)}
+  .new .btn:active{transform:none;filter:brightness(.94)}
+  .new .btn.pri:hover{background:var(--ink2);border-color:var(--ink2);color:var(--leaf)}
+  .new .cta{display:block;width:100%;text-align:center;padding:12px;margin-top:14px;background:var(--ink);color:var(--leaf);
+    border:1px solid var(--ink);cursor:pointer;font-size:13px;letter-spacing:.08em;
+    transition:background-color 240ms var(--ease),border-color 240ms var(--ease),filter 120ms var(--ease)}
+  .new .cta:hover{transform:none;box-shadow:none;background:var(--ink2);border-color:var(--ink2)}
+  .new .cta:active{filter:brightness(.94)}
+  .new .pane.flash{animation:newIn 420ms var(--ease)}
+  @keyframes newIn{from{opacity:.35}to{opacity:1}}
+  .new .toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:var(--leaf);
+    padding:8px 15px;font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;
+    border-left:2px solid var(--seal);box-shadow:none}
+  .new .toast.on{animation:newToast 420ms var(--ease) forwards}
+  @keyframes newToast{from{opacity:0}to{opacity:1}}
+  .new .rule{height:2px;background:var(--seal);width:100%;margin:8px 0 0}
+
+  .readout{margin-top:12px;border-top:1px solid var(--rule);padding-top:10px;font-size:11px;color:var(--ink3);
+    display:flex;justify-content:space-between;gap:10px;font-variant-numeric:tabular-nums}
+  .readout b{color:var(--ink2);font-weight:500}
+
+  .bar{margin-top:28px;border:1px solid var(--rule);background:var(--leaf);padding:16px 18px;
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .bar .btn{min-width:130px;text-align:center}
+  .bar .note{font-size:11px;color:var(--ink3);margin-left:auto;letter-spacing:.04em}
+
+  .ledger{margin-top:30px;border-top:1px solid var(--strong);padding-top:20px}
+  .ledger h2{font-family:var(--cn);font-weight:400;font-size:20px;letter-spacing:.1em;margin:0 0 14px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+  th{font-family:var(--cn);font-weight:500;letter-spacing:.08em;color:var(--ink2);background:var(--leaf)}
+  td:first-child{color:var(--ink3)}
+  td:last-child{color:var(--seal)}
+  footer{margin-top:30px;border-top:1px solid var(--rule);padding-top:16px;font-size:11px;color:var(--ink3);letter-spacing:.05em}
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Folio 02 · Interaction Rhythm</div>
+    <h1>交互的呼吸，不是交互的表演<span class="seal">册页</span></h1>
+    <p class="sub">同一份首页语汇，左右两栏分别套用旧节律与《册页交互节律》。
+      请实际把鼠标移到按钮上、按下、滚动内容，再点下方操作——两栏的差异不在静态画面，而在手指落下之后发生的事。</p>
+
+    <div class="clock">
+      <div><b>120ms</b><span>触 · 按下即回</span></div>
+      <div><b>240ms</b><span>息 · 一次呼吸</span></div>
+      <div><b>420ms</b><span>页 · 纸面落定</span></div>
+      <div><b>600ms</b><span>翻 · 3D 翻卡不动</span></div>
+    </div>
+  </header>
+
+  <div class="cols">
+    <section class="panel old">
+      <div class="ph"><b>旧节律</b><span>表演型 · 反馈堆叠</span></div>
+      <div class="pb">
+        <div class="pane old" id="paneOld">
+          <div id="innerOld"></div>
+          <div class="toast" id="toastOld">已显示「四级」· 3 本词书</div>
+        </div>
+        <div class="btnrow">
+          <button class="btn pri" data-old="filter">筛选词书</button>
+          <button class="btn" data-old="star">☆ 加星</button>
+          <button class="btn" data-old="toast">触发提示</button>
+        </div>
+        <div class="readout"><span>阅读位置 <b id="posOld">0</b></span><span>焦点 <b id="focOld">—</b></span></div>
+      </div>
+    </section>
+
+    <section class="panel new">
+      <div class="ph"><b>新节律</b><span>呼吸型 · 墨色与界栏</span></div>
+      <div class="pb">
+        <div class="pane new" id="paneNew">
+          <div id="innerNew"></div>
+          <div class="toast" id="toastNew">已显示「四级」· 3 本词书</div>
+        </div>
+        <div class="btnrow">
+          <button class="btn pri" data-new="filter">筛选词书</button>
+          <button class="btn" data-new="star">☆ 加星</button>
+          <button class="btn" data-new="toast">触发提示</button>
+        </div>
+        <div class="readout"><span>阅读位置 <b id="posNew">0</b></span><span>焦点 <b id="focNew">—</b></span></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="bar">
+    <button class="btn" id="sim">模拟一次筛选（同页重渲染）</button>
+    <button class="btn" id="page">翻到下一页</button>
+    <button class="btn" id="reset">重置</button>
+    <span class="note">可先滚动两栏内容，再点「模拟一次筛选」观察位置变化</span>
+  </div>
+
+  <section class="ledger">
+    <h2>十处处置对照</h2>
+    <table>
+      <thead><tr><th style="width:26%">触点</th><th style="width:37%">旧节律</th><th>新节律</th></tr></thead>
+      <tbody>
+        <tr><td>悬停</td><td>抬 1px + 投影加深</td><td>纸面微润 + 界栏转深，零位移</td></tr>
+        <tr><td>按下</td><td>scale(.985) 缩一下</td><td>120ms 墨色沉一分</td></tr>
+        <tr><td>切页</td><td>6px 位移淡入</td><td>纯明度落定，学习页完全静默</td></tr>
+        <tr><td>提示 toast</td><td>8px 跳入、pill 圆角、投影</td><td>纯淡入、直角、朱印左线</td></tr>
+        <tr><td>答错 / 加星</td><td>左右抖动 / 放大 1.12</td><td>明度一沉一浮</td></tr>
+        <tr><td>发音加载</td><td>900ms 无限闪烁</td><td>1.4s 两次呼吸后停</td></tr>
+        <tr><td>页签选中</td><td>细线瞬切</td><td>朱印细线由左落笔</td></tr>
+        <tr><td>释义出现</td><td>3D 翻转 + 二次淡入</td><td>取消二次淡入，动效不叠加</td></tr>
+        <tr><td>同页交互</td><td>每次滚回页首（还带慢动作）</td><td>阅读位置原样保持</td></tr>
+        <tr><td>键盘焦点</td><td>DOM 重建后掉回 body</td><td>同一枚按钮上静默放回</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    交互语汇示意页，非运行截图 · 真实效果以 <b>背单词365.exe</b> 为准 ·
+    实现位于 <b>www/css/motion.css</b> 与 <b>www/js/motion.js</b> · 三层样式按 app.css → folio.css → motion.css 依次覆盖
+  </footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var body = [
+    '<div class="pagerow"><b>翻开今日这一页</b><i>Folio · 第 41 页</i></div>',
+    '<div class="rule"></div>',
+    '<div class="filler">今日已读 <em>6 页</em> · 待重读的书页 <em>4 页</em><br>',
+    '「achieve」在例句里第三次出现时，你停了一下。<br>',
+    '这不算是记住了，也不算是忘了。<br>',
+    '一日一页，词自成书。<br>',
+    '纸面只留必要的信息：词头、释义、例句、页码。<br>',
+    '进度不写成百分比，写成第几页。<br>',
+    '连续翻阅 <em>12 天</em>，不必为此庆祝。<br>',
+    '词书按主题分为五册：校园、职业、议题、科技、情绪。<br>',
+    '每一册的封面只有一道 3px 书脊色标。<br>',
+    '数据只在此机，不上传云端。<br>',
+    '再往下还有几行，用来让你滚动。<br>',
+    '请滚到这里，然后点下方的「模拟一次筛选」。<br>',
+    '底部这一行是这一页的落款。</div>',
+    '<button class="cta">继续翻阅</button>'
+  ].join('');
+
+  var paneOld = document.getElementById('paneOld'),
+      paneNew = document.getElementById('paneNew'),
+      iOld = document.getElementById('innerOld'),
+      iNew = document.getElementById('innerNew');
+
+  function toast(el){
+    el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    clearTimeout(el._t);
+    el._t = setTimeout(function(){ el.classList.remove('on'); }, 2200);
+  }
+  function readout(){
+    document.getElementById('posOld').textContent = Math.round(paneOld.scrollTop);
+    document.getElementById('posNew').textContent = Math.round(paneNew.scrollTop);
+    document.getElementById('focOld').textContent = (document.activeElement && document.activeElement.textContent || '').trim().slice(0,6) || '—';
+    document.getElementById('focNew').textContent = (document.activeElement && document.activeElement.textContent || '').trim().slice(0,6) || '—';
+  }
+  paneOld.addEventListener('scroll', readout);
+  paneNew.addEventListener('scroll', readout);
+  document.addEventListener('focusin', readout);
+
+  /* 同页重渲染：旧侧无条件归零（且 smooth 让它慢慢往上跑）；新侧保持位置并恢复焦点。 */
+  function rerender(){
+    var oldTop = paneOld.scrollTop, newTop = paneNew.scrollTop;
+    iOld.innerHTML = body; iNew.innerHTML = body;
+    paneOld.scrollTop = 0;              // app.js render() 末尾原样
+    paneNew.scrollTop = newTop;         // motion.js 拦下归零后的结果
+    paneOld.classList.remove('flash'); void paneOld.offsetWidth; paneOld.classList.add('flash');
+    paneNew.classList.remove('flash'); void paneNew.offsetWidth; paneNew.classList.add('flash');
+    readout();
+  }
+  function nextPage(){
+    iOld.innerHTML = body; iNew.innerHTML = body;
+    paneOld.scrollTop = 0; paneNew.scrollTop = 0;
+    paneOld.classList.remove('flash'); void paneOld.offsetWidth; paneOld.classList.add('flash');
+    paneNew.classList.remove('flash'); void paneNew.offsetWidth; paneNew.classList.add('flash');
+    toast(document.getElementById('toastOld'));
+    toast(document.getElementById('toastNew'));
+    readout();
+  }
+
+  document.getElementById('sim').addEventListener('click', function(){ rerender(); toast(document.getElementById('toastOld')); toast(document.getElementById('toastNew')); });
+  document.getElementById('page').addEventListener('click', nextPage);
+  document.getElementById('reset').addEventListener('click', function(){
+    iOld.innerHTML = body; iNew.innerHTML = body;
+    paneOld.scrollTop = 0; paneNew.scrollTop = 0; readout();
+  });
+  document.querySelectorAll('[data-old]').forEach(function(b){
+    b.addEventListener('click', function(){
+      if (b.getAttribute('data-old') === 'toast') { toast(document.getElementById('toastOld')); return; }
+      if (b.getAttribute('data-old') === 'filter') { rerender(); return; }
+      b.animate([{transform:'scale(1)'},{transform:'scale(1.12)'},{transform:'scale(1)'}], {duration:380});
+    });
+  });
+  document.querySelectorAll('[data-new]').forEach(function(b){
+    b.addEventListener('click', function(){
+      if (b.getAttribute('data-new') === 'toast') { toast(document.getElementById('toastNew')); return; }
+      if (b.getAttribute('data-new') === 'filter') { rerender(); return; }
+      b.animate([{opacity:.5},{opacity:1}], {duration:380});
+    });
+  });
+
+  iOld.innerHTML = body; iNew.innerHTML = body; readout();
+})();
+</script>
+</body>
+</html>

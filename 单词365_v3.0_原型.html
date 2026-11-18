@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-mode="day">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>单词365 · 册页 · v3.0 原型</title>
+<style>
+:root{
+  --paper:#F4F1E9; --sheet:#FBF9F3; --ink:#1E3A30; --ink2:#6E736C;
+  --rule:#DCD6C8; --seal:#9C3B2E; --gilt:#A8874E;
+  --serif:Georgia,"Songti SC","SimSun",serif;
+  --sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+html[data-mode="night"]{
+  --paper:#1A1C19; --sheet:#22251F; --ink:#E8E4D8; --ink2:#A8A296;
+  --rule:#3A3D35; --seal:#C26550; --gilt:#C2A265;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.9;padding:40px 20px 64px;transition:background .3s,color .3s}
+.book{max-width:720px;margin:0 auto}
+.mast{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:1px solid var(--rule);padding-bottom:12px}
+.brand{font-family:var(--serif);font-size:17px;letter-spacing:.06em}
+.page{font-size:12px;color:var(--gilt);letter-spacing:.08em;margin-left:auto}
+.mode{font-size:12px;color:var(--ink2);border:1px solid var(--rule);padding:3px 8px;background:none;cursor:pointer}
+.tabs{display:flex;border-bottom:1px solid var(--rule);margin-bottom:36px}
+.tabs button{flex:1;padding:10px 0;font-size:13px;color:var(--ink2);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.scene{display:none}
+.scene.on{display:block;animation:fade .3s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.date{font-size:12px;color:var(--ink2);letter-spacing:.08em}
+h1{font-family:var(--serif);font-size:39px;line-height:1.25;font-weight:400;margin:14px 0 8px}
+h1.small{font-size:28px}
+.sub{color:var(--ink2);font-size:14px}
+.slots{display:flex;border:1px solid var(--rule);margin:32px 0 0}
+.slots button{flex:1;padding:18px 0;font-size:15px;color:var(--ink);background:none;border:none;border-right:1px solid var(--rule);cursor:pointer}
+.slots button:last-child{border-right:none}
+.slots button.on{background:var(--ink);color:var(--sheet)}
+.act{display:block;width:100%;margin-top:20px;padding:14px;background:var(--ink);color:var(--sheet);border:none;font-size:15px;letter-spacing:.08em;cursor:pointer}
+.foot{margin-top:40px;padding-top:14px;border-top:1px solid var(--rule);font-size:12px;color:var(--ink2);display:flex;justify-content:space-between;gap:12px}
+.link{color:var(--seal);text-decoration:none;border-bottom:1px solid var(--seal);cursor:pointer;font-size:12px;background:none}
+.card{background:var(--sheet);border:1px solid var(--rule);padding:36px 32px;margin-top:24px}
+.word{font-family:var(--serif);font-size:63px;line-height:1.05;text-align:center;word-break:break-all}
+.ipa{text-align:center;color:var(--ink2);font-size:13px;letter-spacing:.04em;margin-top:6px}
+.tag{text-align:center;font-size:12px;color:var(--ink2);margin-top:18px;letter-spacing:.06em}
+.input{width:100%;margin-top:16px;padding:12px;background:transparent;border:none;border-bottom:1px solid var(--rule);font-size:17px;text-align:center;color:var(--ink);outline:none}
+.input:focus{border-bottom-color:var(--ink)}
+.hint{text-align:center;margin-top:10px}
+.hint button{font-size:12px;color:var(--ink2);background:none;border:none;border-bottom:1px solid var(--rule);cursor:pointer}
+.fb{text-align:center;margin-top:16px;font-size:13px;color:var(--seal);min-height:22px}
+.row{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2);padding:8px 0;border-bottom:1px solid var(--rule)}
+.row b{color:var(--ink);font-weight:400}
+.count{font-family:var(--serif);font-size:24px;text-align:center;margin:4px 0 0}
+.seal{display:inline-block;border:1px solid var(--seal);color:var(--seal);padding:2px 6px;font-size:11px;letter-spacing:.2em}
+details{margin-top:18px;border-top:1px solid var(--rule);padding-top:12px}
+summary{font-size:13px;color:var(--ink2);cursor:pointer}
+.item{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dotted var(--rule)}
+.note{margin-top:48px;border-top:1px solid var(--rule);padding-top:16px;font-size:12px;color:var(--ink2);line-height:1.9}
+.note ul{margin:6px 0 0 18px}
+@media(max-width:560px){h1{font-size:28px}.word{font-size:44px}.slots button{padding:14px 0;font-size:14px}.card{padding:24px 18px}}
+</style>
+</head>
+<body>
+<div class="book">
+  <header class="mast">
+    <span class="brand">单词365 · 册页</span>
+    <span class="page">第 47 页</span>
+    <button class="mode" id="modeBtn">夜读</button>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-s="cover" class="on">扉页</button>
+    <button data-s="study">学习</button>
+    <button data-s="exam">抽检</button>
+    <button data-s="result">结果</button>
+    <button data-s="binding">凭据</button>
+  </nav>
+
+  <main>
+    <section class="scene on" id="s-cover">
+      <div class="date">十一月十四日 · 星期五</div>
+      <h1>今天读几分钟</h1>
+      <p class="sub">这一档读完，书页会往前走几页。</p>
+      <div class="slots" id="slots">
+        <button data-m="5">5</button>
+        <button data-m="10" class="on">10</button>
+        <button data-m="15">15</button>
+        <button data-m="20">20</button>
+        <button data-m="30">30</button>
+      </div>
+      <button class="act" id="startBtn">开始读</button>
+      <div class="foot">
+        <span>书页停在第 47 页</span>
+        <button class="link" id="toExam">有 10 页待抽看</button>
+      </div>
+    </section>
+
+    <section class="scene" id="s-study">
+      <div class="card">
+        <div class="word">achieve</div>
+        <div class="ipa">/əˈtʃiːv/</div>
+        <div class="tag">写出英文 · 复习</div>
+        <input class="input" id="ans" placeholder="写下这一页的英文" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="hint"><button id="hintBtn">提示一个字母</button></div>
+        <div class="fb" id="fb"></div>
+      </div>
+      <div class="foot"><span>第 47 页</span><span>这一档 · 10 分钟</span></div>
+    </section>
+
+    <section class="scene" id="s-exam">
+      <div class="date">装订抽检</div>
+      <h1 class="small">写出这一页</h1>
+      <p class="sub">第 1 页 / 共 10 页 · 只写，不看提示</p>
+      <div class="card">
+        <div class="word" id="examWord">adequate</div>
+        <input class="input" id="examAns" placeholder="写下这一页的英文" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <div class="fb" id="examFb"></div>
+      </div>
+      <div class="foot">
+        <span>中途合上也没关系，下次接着这一页</span>
+        <button class="link" id="closeExam">先合上</button>
+      </div>
+    </section>
+
+    <section class="scene" id="s-result">
+      <div class="date">抽检结果</div>
+      <h1 class="small">10 页中有 7 页仍是已掌握</h1>
+      <p class="sub">另外 3 页已回到学习中的重读队列，记在本周册页。</p>
+      <div class="card">
+        <div class="count">已装订 3 页</div>
+        <details>
+          <summary>逐页看</summary>
+          <div class="item"><span>adequate</span><span>仍是已掌握</span></div>
+          <div class="item"><span>advocate</span><span>仍是已掌握</span></div>
+          <div class="item"><span>ambiguous</span><span>已回到学习中</span></div>
+        </details>
+      </div>
+      <div class="foot"><span>没有分数，也没有评价</span><span class="seal">本机</span></div>
+    </section>
+
+    <section class="scene" id="s-binding">
+      <div class="date">装订记录</div>
+      <h1 class="small">第 1 页</h1>
+      <div class="card">
+        <div class="row"><span>生成</span><b>2026 年 11 月 14 日</b></div>
+        <div class="row"><span>抽检</span><b>2026 年 11 月 14 日</b></div>
+        <div class="row"><span>抽看</span><b>10 页</b></div>
+        <div class="row"><span>仍为已掌握</span><b>7 页</b></div>
+        <p class="sub" style="margin-top:18px">这张记录只存在这台电脑里，随备份一起带走。</p>
+      </div>
+      <div class="foot"><span>不生成图片，也没有分享</span><button class="link">从本机删除这张记录</button></div>
+    </section>
+  </main>
+
+  <div class="note">
+    <p><b>原型说明</b>：演示 v3.0 的扉页时长档、抽检入口、抽检页、结果页与凭据页。刻意不出现的东西：</p>
+    <ul>
+      <li>扉页无百分数、无环形进度、无剩余张数、无倒计时</li>
+      <li>结果页无得分、无正确率、无「优秀 / 合格」、无鼓励句</li>
+      <li>凭据不可出图、无分享、无一键复制</li>
+      <li>抽检可随时合上，下次接着同一页</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  var tabs = document.getElementById('tabs');
+  function show(id){
+    var scenes = document.querySelectorAll('.scene');
+    for (var i=0;i<scenes.length;i++){
+      scenes[i].classList.toggle('on', scenes[i].id === 's-' + id);
+    }
+    var btns = tabs.querySelectorAll('button');
+    for (var j=0;j<btns.length;j++){
+      btns[j].classList.toggle('on', btns[j].dataset.s === id);
+    }
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  tabs.addEventListener('click', function(e){
+    if (e.target.dataset.s) show(e.target.dataset.s);
+  });
+
+  document.getElementById('modeBtn').addEventListener('click', function(){
+    var h = document.documentElement;
+    var next = h.dataset.mode === 'night' ? 'day' : 'night';
+    h.dataset.mode = next;
+    this.textContent = next === 'night' ? '日读' : '夜读';
+  });
+
+  document.getElementById('slots').addEventListener('click', function(e){
+    if (!e.target.dataset.m) return;
+    var bs = this.querySelectorAll('button');
+    for (var i=0;i<bs.length;i++){ bs[i].classList.remove('on'); }
+    e.target.classList.add('on');
+  });
+
+  document.getElementById('startBtn').addEventListener('click', function(){ show('study'); });
+  document.getElementById('toExam').addEventListener('click', function(){ show('exam'); });
+  document.getElementById('closeExam').addEventListener('click', function(){ show('cover'); });
+
+  var ans = document.getElementById('ans');
+  var fb = document.getElementById('fb');
+  ans.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter') return;
+    var v = ans.value.trim().toLowerCase();
+    if (v === 'achieve'){
+      fb.style.color = 'var(--ink)';
+      fb.textContent = '已装订 · 第 47 页';
+    } else {
+      fb.style.color = 'var(--seal)';
+      fb.textContent = '这一页还没写出来，已放回待重读';
+    }
+  });
+  document.getElementById('hintBtn').addEventListener('click', function(){
+    var w = 'achieve';
+    var n = Math.min(ans.value.length + 1, w.length);
+    ans.value = w.slice(0, n);
+    ans.focus();
+  });
+
+  var ea = document.getElementById('examAns');
+  var ef = document.getElementById('examFb');
+  ea.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter') return;
+    ef.textContent = '已记下这一页';
+    setTimeout(function(){ show('result'); }, 600);
+  });
+})();
+</script>
+</body>
+</html>

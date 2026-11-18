@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="zh-CN" data-mode="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单词365 · v3.0 交互状态走查</title>
+<style>
+/* 视觉完全沿用 v3.0 原型的册页令牌，本页不新增任何风格 */
+:root{
+  --paper:#F4F1E9; --sheet:#FBF9F3; --ink:#1E3A30; --ink2:#6E736C;
+  --rule:#DCD6C8; --rule2:#C4BDA9; --seal:#9C3B2E; --gilt:#A8874E;
+  --serif:Georgia,"Songti SC","SimSun",serif;
+  --sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+html[data-mode="night"]{
+  --paper:#1A1C19; --sheet:#22251F; --ink:#E8E4D8; --ink2:#A8A296;
+  --rule:#3A3D35; --rule2:#4E574F; --seal:#C26550; --gilt:#C2A265;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.85;padding:34px 20px 60px;transition:background .3s,color .3s}
+.wrap{max-width:1240px;margin:0 auto}
+header.top{border-bottom:1px solid var(--rule2);padding-bottom:18px;margin-bottom:22px}
+.kicker{font-family:var(--serif);font-size:11px;letter-spacing:.24em;color:var(--gilt)}
+h1{font-family:var(--serif);font-size:29px;font-weight:400;letter-spacing:.08em;margin:8px 0 6px}
+.top p{font-size:12.5px;color:var(--ink2);max-width:900px}
+.top .tag{display:inline-block;border:1px solid var(--seal);color:var(--seal);font-size:10.5px;letter-spacing:.14em;padding:1px 8px;margin-left:10px;vertical-align:middle}
+
+.grid{display:grid;grid-template-columns:220px 230px minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:1000px){.grid{grid-template-columns:1fr 1fr}.col-screen{grid-column:1/-1}}
+@media(max-width:640px){.grid{grid-template-columns:1fr}.col-screen{grid-column:auto}}
+.col{background:var(--sheet);border:1px solid var(--rule)}
+.col h2{font-family:var(--serif);font-size:14px;font-weight:400;letter-spacing:.1em;padding:11px 13px;border-bottom:1px solid var(--rule);color:var(--ink)}
+.col .body{padding:10px 11px 13px}
+.lbl{font-size:10.5px;letter-spacing:.16em;color:var(--gilt);margin:6px 0 7px}
+.btn{
+  display:block;width:100%;text-align:left;border:1px solid var(--rule);
+  background:transparent;color:var(--ink2);font:inherit;font-size:12px;
+  padding:7px 10px;margin-bottom:6px;cursor:pointer;min-height:36px;
+  transition:background-color .24s,border-color .24s,color .24s;
+}
+.btn:hover{background:var(--paper);border-color:var(--rule2);color:var(--ink)}
+.btn.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.btn small{display:block;font-size:10px;opacity:.72;letter-spacing:.02em;margin-top:1px}
+.btn.exc{border-left:2px solid var(--rule2)}
+.btn.exc.on{border-left-color:var(--seal)}
+.rowtools{display:flex;gap:6px;margin-top:10px}
+.rowtools .btn{width:auto;flex:1;text-align:center;margin:0;padding:6px 4px;font-size:11px}
+
+/* ---- 右侧：模拟界面（严格沿用原型视觉） ---- */
+.screen{background:var(--paper);border:1px solid var(--rule2);min-height:470px;display:flex;flex-direction:column}
+.s-mast{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--rule);padding:11px 18px}
+.s-brand{font-family:var(--serif);font-size:15px;letter-spacing:.06em}
+.s-page{font-size:11px;color:var(--gilt);letter-spacing:.08em;margin-left:auto}
+.s-mode{font-size:11px;color:var(--ink2);border:1px solid var(--rule);padding:2px 7px;background:none;cursor:pointer;font-family:inherit}
+.s-tabs{display:flex;border-bottom:1px solid var(--rule);padding:0 18px;gap:14px}
+.s-tabs span{font-size:11px;color:var(--ink2);padding:8px 0;border-bottom:2px solid transparent}
+.s-tabs span.on{color:var(--ink);border-bottom-color:var(--ink)}
+.s-body{flex:1 1 auto;padding:20px 24px 18px}
+.s-date{font-size:11px;color:var(--ink2);letter-spacing:.08em}
+.s-h1{font-family:var(--serif);font-size:31px;font-weight:400;line-height:1.3;margin:9px 0 6px}
+.s-h1.small{font-size:24px}
+.s-sub{font-size:13px;color:var(--ink2)}
+.s-slots{display:flex;border:1px solid var(--rule);margin-top:22px}
+.s-slots button{flex:1;padding:12px 0;font-size:13px;background:none;border:none;border-right:1px solid var(--rule);color:var(--ink);font-family:inherit;cursor:pointer}
+.s-slots button:last-child{border-right:none}
+.s-slots button.on{background:var(--ink);color:var(--sheet)}
+.s-act{display:block;width:100%;margin-top:14px;padding:11px;background:var(--ink);color:var(--sheet);border:1px solid var(--ink);font-family:var(--serif);font-size:13px;letter-spacing:.08em;cursor:pointer}
+.s-act[disabled]{opacity:.42;cursor:default}
+.s-card{background:var(--sheet);border:1px solid var(--rule);padding:24px 22px;margin-top:18px}
+.s-word{font-family:var(--serif);font-size:41px;line-height:1.1;text-align:center;word-break:break-all}
+.s-ipa{text-align:center;font-size:12px;color:var(--ink2);margin-top:4px}
+.s-tag{text-align:center;font-size:11px;color:var(--ink2);margin-top:14px;letter-spacing:.06em}
+.s-input{width:100%;margin-top:14px;padding:9px;background:transparent;border:none;border-bottom:1px solid var(--rule);font-size:15px;text-align:center;color:var(--ink);outline:none;font-family:inherit}
+.s-fb{text-align:center;margin-top:12px;font-size:12.5px;min-height:20px;color:var(--ink)}
+.s-fb.empty{color:transparent}
+.s-row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:7px 0;border-bottom:1px solid var(--rule)}
+.s-row b{color:var(--ink);font-weight:400}
+.s-foot{margin-top:auto;border-top:1px solid var(--rule);padding:11px 24px;font-size:11px;color:var(--ink2);display:flex;justify-content:space-between;gap:12px;align-items:center}
+.s-link{color:var(--seal);border-bottom:1px solid var(--seal);font-size:11px;background:none;border-top:none;border-left:none;border-right:none;cursor:pointer;font-family:inherit;padding:0}
+.s-alert{border:1px solid var(--rule2);border-left:2px solid var(--ink);padding:9px 12px;margin-top:14px;font-size:12px;color:var(--ink);background:var(--sheet)}
+.s-seal{display:inline-block;border:1px solid var(--seal);color:var(--seal);padding:1px 6px;font-size:10px;letter-spacing:.18em}
+
+/* ---- 走查注解：虚线框，与产品界面明确区分 ---- */
+.anno{border-top:1px dashed var(--rule2);padding:12px 24px;background:var(--sheet)}
+.anno .t{font-size:10px;letter-spacing:.18em;color:var(--gilt);margin-bottom:5px}
+.anno table{width:100%;border-collapse:collapse;font-size:11.5px}
+.anno td{padding:4px 6px;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink2)}
+.anno td:first-child{width:88px;color:var(--ink);white-space:nowrap}
+.anno .level{color:var(--seal)}
+
+footer.doc{margin-top:26px;border-top:1px solid var(--rule2);padding-top:16px;font-size:11px;color:var(--ink2);letter-spacing:.03em}
+footer.doc b{font-weight:400;color:var(--ink)}
+.matrix{margin-top:22px;border:1px solid var(--rule);background:var(--sheet)}
+.matrix h2{font-family:var(--serif);font-size:14px;font-weight:400;letter-spacing:.1em;padding:11px 13px;border-bottom:1px solid var(--rule)}
+.matrix table{width:100%;border-collapse:collapse;font-size:11.5px}
+.matrix th,.matrix td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--rule);vertical-align:top}
+.matrix th{color:var(--ink2);font-weight:400;letter-spacing:.06em;background:var(--paper)}
+.matrix td:first-child{color:var(--gilt);white-space:nowrap}
+@media(max-width:640px){.matrix table{font-size:10.5px}.s-h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">Interaction State Walkthrough · R1–R3</div>
+    <h1>v3.0 交互状态走查<span class="tag">非新增视觉风格</span></h1>
+    <p>左侧选关键路径，中间切状态或复现异常，右侧即时渲染对应的界面表现。虚线框内是<strong>评审注解</strong>，
+      不属于产品界面。视觉严格沿用 v3.0 原型的册页令牌：宣纸 / 墨松 / 界栏 / 朱印 / 赭金、直角、宋体＋Georgia。</p>
+  </header>
+
+  <div class="grid">
+    <section class="col">
+      <h2>① 关键路径</h2>
+      <div class="body" id="paths"></div>
+    </section>
+
+    <section class="col">
+      <h2>② 状态 / 异常</h2>
+      <div class="body">
+        <div class="lbl">统一七态</div>
+        <div id="states"></div>
+        <div class="lbl" style="margin-top:12px">异常复现（E1–E12）</div>
+        <div id="excs"></div>
+        <div class="rowtools">
+          <button class="btn" id="resetBtn">复位</button>
+          <button class="btn" id="nightBtn">夜读</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="col col-screen">
+      <h2>③ 界面表现 <span id="screenName" style="font-size:11px;color:var(--ink2);letter-spacing:.04em"></span></h2>
+      <div class="body" style="padding:0">
+        <div class="screen">
+          <div class="s-mast">
+            <span class="s-brand">单词365 · 册页</span>
+            <span class="s-page" id="mastPage">第 47 页</span>
+            <button class="s-mode" id="modeBtn">夜读</button>
+          </div>
+          <div class="s-tabs" id="sTabs"></div>
+          <div class="s-body" id="sBody"></div>
+          <div class="s-foot" id="sFoot"></div>
+        </div>
+        <div class="anno">
+          <div class="t">走查注解 · 不属于产品界面</div>
+          <table>
+            <tr><td>当前状态</td><td id="anState"></td></tr>
+            <tr><td>反馈级别</td><td class="level" id="anLevel"></td></tr>
+            <tr><td>状态证据</td><td id="anEvidence"></td></tr>
+            <tr><td>验收编号</td><td id="anAC"></td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="matrix">
+    <h2>反馈分级与信息层级（R2 速查）</h2>
+    <table>
+      <thead><tr><th>层级</th><th>承载位置</th><th>时长 / 播报</th><th>适用状态</th><th>禁止</th></tr></thead>
+      <tbody>
+        <tr><td>主事实</td><td>h1，一屏一个</td><td>常驻</td><td>全部</td><td>百分数、差额、评价</td></tr>
+        <tr><td>次事实</td><td>sub，≤1 行</td><td>常驻</td><td>ready / active / done</td><td>催促、倒计时</td></tr>
+        <tr><td>静默事实</td><td>页脚 12px</td><td>常驻 / 不播报</td><td>idle / ready / paused</td><td>待做计数、延后次数</td></tr>
+        <tr><td>行内事实</td><td>fb / 行内一行</td><td>随下一卡清除 · aria-live polite</td><td>active / done</td><td>朱红评判色、失败 / 错误字样</td></tr>
+        <tr><td>可撤销</td><td>toast + 撤销</td><td>2.6s · role=status</td><td>deleted / rated</td><td>与普通 toast 并存</td></tr>
+        <tr><td>异常</td><td>持久行内 + 下一步</td><td>不自动消失 · role=alert</td><td>degraded</td><td>被普通提示冲掉</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="doc">
+    <b>交互状态走查件</b>，非运行截图 · 依据《背单词365_v3.0_交互体验迭代设计_R1-R3.md》·
+    不新增功能、不新增路由、不改册页视觉 · 原 v3.0 原型保持不动
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var PATHS = [
+    { id: 'P1', name: '日常主路径', desc: '启动 → 扉页 → 选档 → 开始读 → 完成', screen: '扉页', states: ['idle','ready','active','done'] },
+    { id: 'P2', name: '单卡作答', desc: '呈现 → 输入 → 提交 → 反馈 → 下一张', screen: '学习', states: ['active','done','degraded'] },
+    { id: 'P3', name: '装订抽检', desc: '入口 → 作答 → 合上 → 续读 → 结果', screen: '抽检', states: ['idle','active','paused','done','empty','degraded'] },
+    { id: 'P4', name: '装订凭据', desc: '结果 → 生成 → 查看 → 本机删除', screen: '凭据', states: ['idle','ready','done','degraded'] },
+    { id: 'P5', name: '延后 / 忽略', desc: '入口到期 → 忽略 → 重启 N 次', screen: '扉页', states: ['idle','empty'] },
+    { id: 'P6', name: '主动查数', desc: '计划页 / 设置页查事实与算术', screen: '计划页', states: ['ready','done'] }
+  ];
+
+  var STATES = [
+    { id: 'idle',     name: '未开始',   desc: '初始，无选中、无回执' },
+    { id: 'ready',    name: '就绪',     desc: '档位写入，按钮回显主事实' },
+    { id: 'active',   name: '进行中',   desc: '逐卡作答 / 抽检中' },
+    { id: 'paused',   name: '可续',     desc: '中途合上，页码固化' },
+    { id: 'done',     name: '已完成',   desc: '答完一档 / 结果 / 已删除' },
+    { id: 'empty',    name: '空',       desc: '池不足 / 入口不出现' },
+    { id: 'degraded', name: '异常',     desc: '只改呈现，不改数据' }
+  ];
+
+  var EXCS = [
+    { id:'E1',  n:'池 < 10',        screen:'扉页', h1:'今天读几分钟', sub:'这一档读完，书页会往前走几页。', foot:'书页停在第 47 页', fb:'', alert:'', level:'静默事实', ev:'抽检入口不出现，无占位、无提示', ac:'R3-AC1 / N1-AC1', data:'不消耗机会' },
+    { id:'E2',  n:'抽检中途退出',  screen:'抽检', h1:'写出这一页', sub:'第 4 页 / 共 10 页 · 只写，不看提示', foot:'停在第 4 页', fb:'', alert:'', level:'行内事实', ev:'页脚写「停在第 k 页」', ac:'R1-AC7 / N1-AC8', data:'已答 flags 不回滚' },
+    { id:'E3',  n:'机会已消耗',    screen:'扉页', h1:'今天读几分钟', sub:'这一档读完，书页会往前走几页。', foot:'书页停在第 47 页', fb:'', link:'继续这一批', alert:'', level:'静默事实', ev:'入口改「继续这一批」，不新开', ac:'R3-AC1 / N1-AC5', data:'不产生第二个机会' },
+    { id:'E4',  n:'sealed 损坏',   screen:'抽检', h1:'这一批页序没能读出', sub:'已经写过的页仍在。', foot:'本机', fb:'', alert:'这一批页序没能读出，可以重新取一批。已写过的页不会丢。', level:'异常', ev:'持久行内异常 + 下一步操作', ac:'R3-AC2 / R3-AC6', data:'旧 flags 不删、不重算' },
+    { id:'E5',  n:'时长脏值 25',   screen:'计划页', h1:'计划', sub:'这一档的派词量与时长同源。', foot:'本机', fb:'', alert:'', level:'静默事实', ev:'设置页有且仅有一个 active 档', ac:'R3-AC2 / F12', data:'userChosenSlot 只由手势写' },
+    { id:'E6',  n:'导入非法 JSON', screen:'计划页', h1:'这份备份没能读出来', sub:'当前的书页没有改动。', foot:'本机', fb:'', alert:'这份备份没能读出来，可以换一个文件。当前书页保持原样。', level:'异常', ev:'行内异常 + 换一个文件', ac:'R3-AC2', data:'不覆盖当前库、不阻断导入' },
+    { id:'E7',  n:'存储不可写',    screen:'学习', h1:'写出这一页', sub:'本机暂不能保存。', foot:'第 47 页', fb:'', alert:'本机暂不能保存，这一页先留在这一屏。恢复后可以继续。', level:'异常', ev:'行内异常，内存态不丢', ac:'R3-AC2 / R3-AC6', data:'不静默失败' },
+    { id:'E8',  n:'发音失败',      screen:'学习', h1:'写出这一页', sub:'已切到本机朗读。', foot:'第 47 页', fb:'发音加载失败，已切到本机朗读', alert:'', level:'行内事实', ev:'按钮回 idle，不影响作答', ac:'R2-AC3', data:'不影响评级' },
+    { id:'E9',  n:'离线 / 同步不可达', screen:'计划页', h1:'计划', sub:'两端进度会在可达时一致。', foot:'本机', fb:'', alert:'', level:'静默事实', ev:'同步入口置静默、不弹错', ac:'R3-AC1', data:'不写脏同步标记' },
+    { id:'E10', n:'凭据前置缺失',  screen:'凭据', h1:'第 1 页', sub:'这一档的凭据还需要一次完整的抽检。', foot:'本机', fb:'', alert:'', level:'静默事实', ev:'凭据位留静默一行', ac:'R3-AC1 / N7', data:'跳号只补最近、不重发' },
+    { id:'E11', n:'快速连按提交',  screen:'学习', h1:'写出这一页', sub:'这一页正在记下。', foot:'第 47 页', fb:'已记下这一页', alert:'', level:'静默事实', ev:'aria-busy=true，按钮 180ms 内不可再点', ac:'R3-AC5', data:'days 只计一次' },
+    { id:'E12', n:'窗口失焦',      screen:'学习', h1:'写出这一页', sub:'回来接着这一页。', foot:'第 47 页', fb:'', alert:'', level:'静默事实', ev:'按 idle 计，不写 closed', ac:'R3-AC1', data:'不虚增时长' }
+  ];
+
+  var TABS = ['扉页','学习','抽检','结果','凭据','计划页'];
+
+  var cur = { path: 'P1', state: 'idle', exc: null };
+
+  function pathById(id) { for (var i=0;i<PATHS.length;i++) if (PATHS[i].id===id) return PATHS[i]; return PATHS[0]; }
+
+  /* 每个路径 × 状态的内容：只写有意义组合，其余由通用模板兜底 */
+  function view(p, s, e) {
+    if (e) return {
+      screen: e.screen, h1: e.h1, sub: e.sub, small: true,
+      foot: e.foot, link: e.link || '', fb: e.fb || '', alert: e.alert || '',
+      level: e.level, ev: e.ev, ac: e.ac, note: e.data,
+      slots: false, card: e.screen === '学习' || e.screen === '抽检', act: false, rows: e.screen === '凭据' || e.screen === '计划页'
+    };
+
+    var base = {
+      screen: p.screen, h1: '今天读几分钟', sub: '这一档读完，书页会往前走几页。', small: false,
+      foot: '书页停在第 47 页', link: '', fb: '', alert: '', slots: false, card: false,
+      act: false, rows: false, level: '静默事实', ev: '页脚静默事实', ac: 'R1-AC1', note: ''
+    };
+
+    if (p.id === 'P1') {
+      base.slots = true; base.act = true;
+      if (s === 'idle')  { base.h1='今天读几分钟'; base.foot='书页停在第 47 页'; base.ev='五档均无选中，开始读不可用'; base.ac='R1-AC1'; }
+      if (s === 'ready') { base.h1='今天读 10 分钟'; base.foot='已选 10 分钟 · 书页停在第 47 页'; base.level='静默事实'; base.ev='10 档 aria-pressed=true，按钮回显主事实'; base.ac='R1-AC1 / R1-AC2'; base.slotOn='10'; base.actText='开始读 · 10 分钟'; }
+      if (s === 'active'){ base.screen='学习'; base.h1='写出这一页'; base.small=true; base.sub='这一档 · 10 分钟'; base.card=true; base.foot='第 47 页 · 这一档 10 分钟'; base.level='行内事实'; base.fb=''; base.ev='页码连续，反馈行 aria-live 就位'; base.ac='R2-AC3 / R2-AC4'; }
+      if (s === 'done')  { base.h1='这一档读完了'; base.small=true; base.sub='书页往前走了几页。'; base.foot='第 53 页 · 可再读一档'; base.level='行内事实'; base.ev='完成页主事实，无得分无正确率'; base.ac='R1-AC3 / R2-AC6'; base.slots=false; base.act=false; }
+    }
+    if (p.id === 'P2') {
+      base.screen='学习'; base.h1='写出这一页'; base.small=true; base.card=true; base.foot='第 47 页';
+      if (s === 'active') { base.sub='写出英文 · 复习'; base.level='行内事实'; base.ev='输入聚焦，提示按钮可用一次'; base.ac='R2-AC4 / R2-AC5'; }
+      if (s === 'done')   { base.fb='这一页还没写出来，已放回待重读'; base.sub='下一页已就位'; base.level='行内事实'; base.ev='墨色事实 + 下一步，输入已清空'; base.ac='R2-AC3 / R2-AC4'; }
+      if (s === 'degraded'){ base.alert='这一页正在记下，稍等一下。'; base.level='异常'; base.ev='aria-busy=true，180ms 内不重复提交'; base.ac='R3-AC5'; }
+    }
+    if (p.id === 'P3') {
+      base.screen='抽检'; base.h1='写出这一页'; base.small=true; base.sub='第 1 页 / 共 10 页 · 只写，不看提示'; base.card=true; base.foot='中途合上也没关系，下次接着这一页'; base.link='先合上';
+      if (s === 'idle')    { base.link='有抽检机会'; base.ev='一行状态入口，无待做计数'; base.ac='R1-AC4'; }
+      if (s === 'active')  { base.sub='第 4 页 / 共 10 页 · 只写，不看提示'; base.level='行内事实'; base.ev='sealed 已固化，10 词不重抽'; base.ac='R1-AC5 / R1-AC6'; }
+      if (s === 'paused')  { base.foot='停在第 4 页'; base.level='行内事实'; base.ev='页脚页码与退出前一致'; base.ac='R1-AC7 / N1-AC8'; }
+      if (s === 'done')    { base.screen='结果'; base.h1='10 页中有 7 页仍是已掌握'; base.sub='另外 3 页已回到学习中的重读队列。'; base.foot='没有分数，也没有评价'; base.card=false; base.link=''; base.level='行内事实'; base.ev='首行只写计数方向，明细默认折叠'; base.ac='R1-AC8 / R2-AC6'; }
+      if (s === 'empty')   { base.screen='扉页'; base.h1='今天读几分钟'; base.foot='书页停在第 47 页'; base.card=false; base.link=''; base.level='静默事实'; base.ev='池不足，入口不出现'; base.ac='N1-AC1'; }
+      if (s === 'degraded'){ base.alert='这一批页序没能读出，可以重新取一批。已写过的页不会丢。'; base.level='异常'; base.ev='持久行内异常 + 下一步'; base.ac='R3-AC2'; }
+    }
+    if (p.id === 'P4') {
+      base.screen='凭据'; base.h1='第 1 页'; base.small=true; base.sub='装订记录'; base.rows=true; base.foot='不生成图片，也没有分享'; base.link='从本机删除这张记录';
+      if (s === 'idle')    { base.ev='删除前 idle，按钮可用'; base.ac='R2-AC7'; }
+      if (s === 'ready')   { base.level='可撤销'; base.fb='已从本机删除这张记录 · 撤销'; base.ev='行项撤下，toast 可撤销 2.6s'; base.ac='R2-AC7'; }
+      if (s === 'done')    { base.h1='这张记录已删除'; base.sub='总页数不变，也不会重发。'; base.link=''; base.rows=false; base.level='行内事实'; base.ev='按钮禁用，totalPages 不回退'; base.ac='R2-AC7'; }
+      if (s === 'degraded'){ base.h1='这一档的凭据还需要一次完整的抽检'; base.sub='条件满足后会补最近一张。'; base.link=''; base.rows=false; base.level='静默事实'; base.ev='凭据位留静默一行'; base.ac='R3-AC1'; }
+    }
+    if (p.id === 'P5') {
+      base.slots=true; base.act=true;
+      if (s === 'idle') { base.link='有抽检机会'; base.ev='忽略并重启 3 次，文案与样式不变'; base.ac='R1-AC4 / N1-AC4'; }
+      if (s === 'empty'){ base.link=''; base.ev='池不足时入口不出现，不占位'; base.ac='N1-AC1'; }
+    }
+    if (p.id === 'P6') {
+      base.screen='计划页'; base.h1='计划'; base.small=true; base.sub='这一档的派词量与时长同源。'; base.rows=true; base.foot='本机 · 这一页由你主动打开';
+      if (s === 'ready') { base.level='静默事实'; base.ev='事实说全，无评价性结论、无红字加粗'; base.ac='N4-AC7'; }
+      if (s === 'done')  { base.level='静默事实'; base.ev='无建议时不出现「数据不足，暂不调整」'; base.ac='F6 / R3-AC7'; }
+    }
+    return base;
+  }
+
+  function el(id) { return document.getElementById(id); }
+
+  function renderLists() {
+    el('paths').innerHTML = PATHS.map(function (p) {
+      return '<button class="btn' + (cur.path === p.id ? ' on' : '') + '" data-path="' + p.id + '">'
+        + p.id + '　' + p.name + '<small>' + p.desc + '</small></button>';
+    }).join('');
+
+    var allowed = pathById(cur.path).states;
+    el('states').innerHTML = STATES.map(function (s) {
+      var off = allowed.indexOf(s.id) < 0;
+      return '<button class="btn' + (cur.state === s.id && !cur.exc ? ' on' : '') + '" data-state="' + s.id + '"'
+        + (off ? ' style="opacity:.42"' : '') + '>' + s.name + '<small>' + s.desc + '</small></button>';
+    }).join('');
+
+    el('excs').innerHTML = EXCS.map(function (e) {
+      return '<button class="btn exc' + (cur.exc === e.id ? ' on' : '') + '" data-exc="' + e.id + '">'
+        + e.id + '　' + e.n + '</button>';
+    }).join('');
+  }
+
+  function renderScreen() {
+    var p = pathById(cur.path);
+    var v = view(p, cur.state, cur.exc ? EXCS.filter(function(e){return e.id===cur.exc;})[0] : null);
+
+    el('screenName').textContent = '· ' + v.screen;
+    el('mastPage').textContent = v.screen === '结果' ? '装订结果' : (v.screen === '凭据' ? '装订记录' : '第 47 页');
+    el('sTabs').innerHTML = TABS.map(function (t) {
+      return '<span class="' + (t === v.screen ? 'on' : '') + '">' + t + '</span>';
+    }).join('');
+
+    var html = '<div class="s-date">' + (v.screen === '结果' || v.screen === '凭据' ? '十一月十四日 · 星期五' : '十一月十四日 · 星期五') + '</div>'
+      + '<h2 class="s-h1' + (v.small ? ' small' : '') + '">' + v.h1 + '</h2>'
+      + '<div class="s-sub">' + v.sub + '</div>';
+
+    if (v.slots) {
+      var sel = v.slotOn || '';
+      html += '<div class="s-slots">' + ['5','10','15','20','30'].map(function (m) {
+        return '<button class="' + (m === sel ? 'on' : '') + '" aria-pressed="' + (m === sel) + '">' + m + '</button>';
+      }).join('') + '</div>'
+        + '<button class="s-act"' + (cur.state === 'idle' ? ' disabled' : '') + '>'
+        + (v.actText || (cur.state === 'idle' ? '先选一档' : '开始读')) + '</button>';
+    }
+
+    if (v.card) {
+      html += '<div class="s-card">'
+        + '<div class="s-word">' + (v.screen === '抽检' ? 'adequate' : 'achieve') + '</div>'
+        + '<div class="s-ipa">/əˈtʃiːv/</div>'
+        + '<div class="s-tag">' + (v.screen === '抽检' ? '只写英文 · 无提示' : '写出英文 · 复习') + '</div>'
+        + '<input class="s-input" placeholder="写下这一页的英文" aria-label="写下这一页的英文">'
+        + '<div class="s-fb' + (v.fb ? '' : ' empty') + '" aria-live="polite">' + (v.fb || '占位') + '</div>'
+        + '</div>';
+    }
+
+    if (v.rows) {
+      var rows = v.screen === '凭据'
+        ? [['生成','2026 年 11 月 14 日'],['抽检','2026 年 11 月 14 日'],['抽看','10 页'],['仍为已掌握','7 页']]
+        : [['每日时长','10 分钟'],['今日新词','8 页'],['今日复习','22 页'],['覆盖率','仅此页可见']];
+      html += '<div class="s-card">' + rows.map(function (r) {
+        return '<div class="s-row"><span>' + r[0] + '</span><b>' + r[1] + '</b></div>';
+      }).join('') + '</div>';
+    }
+
+    if (v.alert) html += '<div class="s-alert">' + v.alert + '</div>';
+    if (v.fb && !v.card) html += '<div class="s-fb" aria-live="polite">' + v.fb + '</div>';
+
+    el('sBody').innerHTML = html;
+    el('sFoot').innerHTML = '<span>' + v.foot + '</span>'
+      + (v.link ? '<button class="s-link">' + v.link + '</button>' : '<span class="s-seal">本机</span>');
+
+    el('anState').textContent = cur.exc ? ('异常 · ' + cur.exc) : cur.state;
+    el('anLevel').textContent = v.level;
+    el('anEvidence').textContent = v.ev + (v.note ? '；数据：' + v.note : '');
+    el('anAC').textContent = v.ac;
+  }
+
+  function draw() { renderLists(); renderScreen(); }
+
+  el('paths').addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-path]') : null;
+    if (!t) return;
+    cur.path = t.getAttribute('data-path');
+    cur.exc = null;
+    cur.state = pathById(cur.path).states[0];
+    draw();
+  });
+  el('states').addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-state]') : null;
+    if (!t) return;
+    cur.state = t.getAttribute('data-state');
+    cur.exc = null;
+    draw();
+  });
+  el('excs').addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('[data-exc]') : null;
+    if (!t) return;
+    cur.exc = t.getAttribute('data-exc');
+    draw();
+  });
+  el('resetBtn').addEventListener('click', function () {
+    cur = { path: 'P1', state: 'idle', exc: null };
+    draw();
+  });
+  function toggleMode() {
+    var h = document.documentElement;
+    var next = h.getAttribute('data-mode') === 'night' ? 'day' : 'night';
+    h.setAttribute('data-mode', next);
+    el('nightBtn').textContent = next === 'night' ? '日读' : '夜读';
+    el('modeBtn').textContent = next === 'night' ? '日读' : '夜读';
+  }
+  el('nightBtn').addEventListener('click', toggleMode);
+  el('modeBtn').addEventListener('click', toggleMode);
+
+  draw();
+})();
+</script>
+</body>
+</html>

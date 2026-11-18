@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单词365 · 册页｜美学宪章 Folio 01</title>
+<style>
+  :root{
+    --paper:#F4F1E9;
+    --leaf:#FBF9F3;
+    --ink:#1E3A30;
+    --ink-soft:#3F534A;
+    --mute:#6E736C;
+    --rule:#DCD6C8;
+    --rule-strong:#C4BDA9;
+    --seal:#9C3B2E;
+    --gold:#A8874E;
+    --serif-latin:"EB Garamond","Cormorant Garamond",Georgia,"Times New Roman",serif;
+    --serif-cn:"Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+    --sans:"Microsoft YaHei UI","PingFang SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+    --sp:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:15px;line-height:1.9;
+    letter-spacing:.02em;-webkit-font-smoothing:antialiased;
+  }
+  /* 纸纹：材质，不是装饰渐变 */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.038;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+    mix-blend-mode:multiply;
+  }
+  .page{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 56px 120px}
+
+  /* ---------- 卷首 ---------- */
+  .colophon{
+    display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+    padding:22px 0 18px;border-bottom:1px solid var(--rule);
+    font-size:11.5px;letter-spacing:.16em;color:var(--mute);text-transform:uppercase;
+  }
+  .colophon b{font-weight:500;color:var(--ink-soft)}
+  .toc{
+    position:sticky;top:0;z-index:5;background:rgba(244,241,233,.94);
+    border-bottom:1px solid var(--rule);
+    display:flex;gap:26px;flex-wrap:wrap;padding:13px 0;margin-bottom:0;
+    font-size:12px;letter-spacing:.08em;
+  }
+  .toc a{color:var(--mute);text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px;transition:color .24s,border-color .24s}
+  .toc a:hover,.toc a:focus-visible{color:var(--seal);border-color:var(--seal)}
+
+  /* ---------- 扉页 ---------- */
+  .frontis{text-align:center;padding:104px 0 92px;border-bottom:1px solid var(--rule)}
+  .seal-mark{
+    width:74px;height:74px;margin:0 auto 40px;border:2px solid var(--seal);
+    display:grid;place-items:center;color:var(--seal);
+    font-family:var(--serif-cn);font-size:38px;line-height:1;
+    transform:rotate(-3deg);opacity:.92;
+    animation:stamp .9s cubic-bezier(.22,.76,.26,1) both;
+  }
+  @keyframes stamp{from{opacity:0;transform:rotate(-3deg) scale(1.14)}to{opacity:.92;transform:rotate(-3deg) scale(1)}}
+  .frontis .kicker{font-size:12px;letter-spacing:.34em;color:var(--gold);margin-bottom:26px}
+  .frontis h1{
+    font-family:var(--serif-cn);font-weight:400;font-size:clamp(38px,5.6vw,63px);
+    line-height:1.25;letter-spacing:.08em;
+  }
+  .frontis h1 span{display:block;font-family:var(--serif-latin);font-size:.42em;letter-spacing:.22em;color:var(--mute);margin-top:18px;font-style:italic}
+  .frontis .lede{
+    max-width:520px;margin:34px auto 0;color:var(--ink-soft);font-size:16px;line-height:2;
+  }
+  .frontis .oath{
+    margin-top:38px;font-size:12.5px;color:var(--mute);letter-spacing:.1em;
+  }
+  .frontis .oath::before,.frontis .oath::after{content:"—";color:var(--rule-strong);margin:0 14px}
+  .frontis .folio-no{margin-top:64px;font-family:var(--serif-latin);font-size:13px;letter-spacing:.2em;color:var(--gold)}
+
+  /* ---------- 章 ---------- */
+  section{padding:82px 0;border-bottom:1px solid var(--rule);scroll-margin-top:56px}
+  .ch-head{display:flex;align-items:flex-start;gap:26px;margin-bottom:14px}
+  .ch-no{font-family:var(--serif-latin);font-size:52px;line-height:1;color:var(--rule-strong);font-style:italic;min-width:62px}
+  .ch-head h2{font-family:var(--serif-cn);font-weight:400;font-size:32px;line-height:1.4;letter-spacing:.06em;padding-top:6px}
+  .ch-head .en{display:block;font-family:var(--serif-latin);font-style:italic;font-size:14px;letter-spacing:.12em;color:var(--mute);margin-top:4px}
+  .ch-intro{color:var(--ink-soft);max-width:720px;margin:0 0 36px 88px;font-size:15.5px}
+  h3{font-family:var(--serif-cn);font-weight:400;font-size:20px;letter-spacing:.05em;margin:44px 0 16px;padding-left:14px;border-left:2px solid var(--gold)}
+  p.note{color:var(--mute);font-size:13px;margin-top:14px;line-height:1.8}
+
+  /* ---------- 体检表 ---------- */
+  .audit{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.75}
+  .audit th{
+    text-align:left;font-weight:500;font-size:11.5px;letter-spacing:.14em;color:var(--mute);
+    border-top:1px solid var(--ink);border-bottom:1px solid var(--rule-strong);padding:12px 12px 12px 0;
+  }
+  .audit td{border-bottom:1px solid var(--rule);padding:15px 12px 15px 0;vertical-align:top}
+  .audit td:first-child{font-family:var(--serif-latin);color:var(--gold);font-size:17px;width:34px}
+  .audit td:nth-child(2){width:150px;font-weight:600}
+  .audit td:nth-child(3){width:34%;color:var(--mute)}
+  .audit .fix{color:var(--ink);font-weight:500}
+  .audit tr:hover td{background:rgba(168,135,78,.055)}
+
+  .verdict{
+    margin-top:34px;padding:26px 30px;border:1px solid var(--rule-strong);
+    border-left:3px solid var(--seal);background:var(--leaf);
+    font-family:var(--serif-cn);font-size:19px;line-height:1.9;letter-spacing:.04em;
+  }
+  .verdict small{display:block;font-family:var(--sans);font-size:12px;letter-spacing:.12em;color:var(--mute);margin-bottom:10px}
+
+  /* ---------- 禁用清单 ---------- */
+  .banned{display:grid;grid-template-columns:repeat(3,1fr);gap:0 30px;margin-top:26px}
+  .banned div{padding:11px 0;border-bottom:1px solid var(--rule);font-size:13.5px;color:var(--mute)}
+  .banned div::before{content:"×";color:var(--seal);margin-right:10px;font-family:var(--serif-latin);font-size:16px}
+  .kept{margin-top:22px;font-size:13.5px;color:var(--ink-soft)}
+  .kept b{font-weight:600;color:var(--ink)}
+
+  /* ---------- 原型隐喻 ---------- */
+  .metaphor{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:12px;border-top:1px solid var(--ink)}
+  .metaphor .row{display:grid;grid-template-columns:1fr 26px 1fr;gap:10px;padding:14px 0;border-bottom:1px solid var(--rule);font-size:13.5px}
+  .metaphor .row span:first-child{color:var(--mute)}
+  .metaphor .row .arrow{color:var(--gold);text-align:center;font-family:var(--serif-latin)}
+  .metaphor .row span:last-child{font-weight:500}
+  .worldview{margin-top:32px;text-align:center;font-family:var(--serif-cn);font-size:22px;letter-spacing:.06em;line-height:2;color:var(--ink);padding:30px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+
+  /* ---------- 色卡 ---------- */
+  .palette{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+  .sw{background:var(--leaf);border:1px solid var(--rule);padding:0}
+  .sw .chip{height:96px;border-bottom:1px solid var(--rule)}
+  .sw .meta{padding:12px 14px 14px}
+  .sw .nm{font-family:var(--serif-cn);font-size:16px;letter-spacing:.04em}
+  .sw .hex{font-family:var(--serif-latin);font-size:13px;color:var(--mute);letter-spacing:.08em;margin-top:2px}
+  .sw .use{font-size:11.5px;color:var(--mute);margin-top:8px;line-height:1.6}
+  .ratio{margin-top:22px;display:flex;height:8px;border:1px solid var(--rule)}
+  .ratio i{display:block;height:100%}
+  .ratio-legend{font-size:11.5px;color:var(--mute);letter-spacing:.1em;margin-top:9px}
+
+  /* ---------- 字阶 ---------- */
+  .type-scale{border-top:1px solid var(--ink);margin-top:20px}
+  .ts-row{display:grid;grid-template-columns:92px 1fr;gap:24px;align-items:baseline;padding:18px 0;border-bottom:1px solid var(--rule)}
+  .ts-row .lab{font-family:var(--serif-latin);font-size:12px;color:var(--gold);letter-spacing:.1em;line-height:1.7}
+  .ts-row .lab em{display:block;font-style:normal;color:var(--mute);font-family:var(--sans);font-size:11px;letter-spacing:.04em}
+  .t4{font-family:var(--serif-latin);font-size:63px;line-height:1.05;letter-spacing:.01em}
+  .t3{font-family:var(--serif-cn);font-size:39px;line-height:1.25;letter-spacing:.06em}
+  .t2{font-family:var(--serif-cn);font-size:24px;line-height:1.4;letter-spacing:.05em}
+  .t1{font-size:17px;font-weight:500;letter-spacing:.03em}
+  .t0{font-size:15px;line-height:1.9}
+  .tm{font-size:12px;color:var(--mute);letter-spacing:.06em}
+
+  /* ---------- 留白 / 动效 ---------- */
+  .rules{counter-reset:r;margin-top:20px}
+  .rules li{list-style:none;counter-increment:r;display:grid;grid-template-columns:40px 1fr;gap:16px;padding:15px 0;border-bottom:1px solid var(--rule);font-size:14px}
+  .rules li::before{content:counter(r,decimal-leading-zero);font-family:var(--serif-latin);font-style:italic;color:var(--gold);font-size:19px}
+  .rules b{font-weight:600}
+  .rules span{color:var(--mute);font-size:13px}
+  .motion{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:14px}
+  .motion th{text-align:left;font-weight:500;color:var(--mute);font-size:11.5px;letter-spacing:.12em;border-bottom:1px solid var(--rule-strong);padding:10px 10px 10px 0}
+  .motion td{border-bottom:1px solid var(--rule);padding:12px 10px 12px 0;color:var(--ink-soft)}
+  .motion td:first-child{font-weight:600;color:var(--ink);width:130px}
+
+  /* ---------- 五幕 ---------- */
+  .acts{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--rule-strong);margin-top:24px}
+  .act{padding:22px 18px 26px;border-right:1px solid var(--rule);position:relative;transition:background .3s}
+  .act:last-child{border-right:none}
+  .act:hover{background:var(--leaf)}
+  .act .no{font-family:var(--serif-latin);font-style:italic;font-size:26px;color:var(--gold);line-height:1}
+  .act h4{font-family:var(--serif-cn);font-weight:400;font-size:18px;letter-spacing:.08em;margin:12px 0 12px}
+  .act .line{font-family:var(--serif-cn);font-size:13.5px;line-height:1.85;color:var(--ink-soft);min-height:76px}
+  .act .strip{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);font-size:11.5px;color:var(--mute);line-height:1.7}
+  .iron{margin-top:26px;display:flex;gap:0;border:1px solid var(--rule-strong);background:var(--leaf)}
+  .iron div{flex:1;text-align:center;padding:16px 8px;border-right:1px solid var(--rule);font-family:var(--serif-cn);font-size:17px;letter-spacing:.1em}
+  .iron div:last-child{border-right:none}
+  .iron div b{color:var(--seal);font-weight:400}
+
+  /* ---------- 定价 ---------- */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+  .tier{background:var(--leaf);border:1px solid var(--rule-strong);padding:28px 24px 26px;display:flex;flex-direction:column;position:relative}
+  .tier.featured{border-color:var(--seal);border-top-width:3px}
+  .tier .stamp{position:absolute;top:-13px;right:16px;background:var(--paper);border:1px solid var(--seal);color:var(--seal);font-size:11px;letter-spacing:.14em;padding:3px 10px}
+  .tier .lv{font-family:var(--serif-latin);font-style:italic;font-size:14px;color:var(--gold);letter-spacing:.14em}
+  .tier h4{font-family:var(--serif-cn);font-weight:400;font-size:23px;letter-spacing:.06em;margin:8px 0 4px}
+  .tier .en2{font-family:var(--serif-latin);font-style:italic;font-size:13px;color:var(--mute);letter-spacing:.1em}
+  .tier .price{font-family:var(--serif-latin);font-size:42px;line-height:1.2;margin:22px 0 2px;letter-spacing:.01em}
+  .tier .price small{font-size:14px;color:var(--mute);margin-left:6px;letter-spacing:.04em}
+  .tier .basis{font-size:11.5px;color:var(--mute);letter-spacing:.08em;margin-bottom:18px}
+  .tier ul{list-style:none;border-top:1px solid var(--rule);padding-top:16px}
+  .tier li{font-size:13px;color:var(--ink-soft);padding:7px 0 7px 16px;position:relative;line-height:1.75}
+  .tier li::before{content:"";position:absolute;left:0;top:16px;width:6px;height:1px;background:var(--gold)}
+  .tier .scarce{margin-top:auto;padding-top:18px;font-size:12px;color:var(--seal);letter-spacing:.04em}
+
+  .translate{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:12px}
+  .translate th{text-align:left;font-weight:500;font-size:11.5px;letter-spacing:.12em;color:var(--mute);border-top:1px solid var(--ink);border-bottom:1px solid var(--rule-strong);padding:11px 12px 11px 0}
+  .translate td{border-bottom:1px solid var(--rule);padding:13px 12px 13px 0;vertical-align:top}
+  .translate td:nth-child(2){color:var(--mute);width:28%}
+  .translate td:nth-child(3){font-family:var(--serif-cn);font-size:15px;letter-spacing:.04em}
+
+  .vows{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:24px;border-top:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong)}
+  .vows div{padding:20px 18px;border-right:1px solid var(--rule)}
+  .vows div:last-child{border-right:none}
+  .vows .v{font-family:var(--serif-cn);font-size:19px;letter-spacing:.08em;margin-bottom:8px}
+  .vows p{font-size:12.5px;color:var(--mute);line-height:1.75}
+
+  /* ---------- 路线 / 尾 ---------- */
+  .roadmap{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:16px}
+  .roadmap th{text-align:left;font-weight:500;font-size:11.5px;letter-spacing:.12em;color:var(--mute);border-top:1px solid var(--ink);border-bottom:1px solid var(--rule-strong);padding:11px 12px 11px 0}
+  .roadmap td{border-bottom:1px solid var(--rule);padding:14px 12px 14px 0;vertical-align:top;color:var(--ink-soft)}
+  .roadmap td:first-child{font-family:var(--serif-cn);font-size:16px;color:var(--ink);width:132px}
+  .roadmap td:nth-child(3){font-size:12.5px;color:var(--mute)}
+
+  .closing{text-align:center;padding:88px 0 0}
+  .closing .mark{width:46px;height:46px;margin:0 auto 26px;border:1.5px solid var(--seal);display:grid;place-items:center;color:var(--seal);font-family:var(--serif-cn);font-size:23px;transform:rotate(-3deg)}
+  .closing .q{font-family:var(--serif-cn);font-size:24px;letter-spacing:.1em;line-height:1.9}
+  .closing .sig{margin-top:30px;font-size:12px;color:var(--mute);letter-spacing:.16em}
+  footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--mute);letter-spacing:.08em}
+
+  /* ---------- 呼吸 ---------- */
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+  :root{--ease:cubic-bezier(.22,.7,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+  :focus-visible{outline:1.5px solid var(--seal);outline-offset:3px}
+  ::selection{background:rgba(156,59,46,.16)}
+
+  @media(max-width:860px){
+    .page{padding:0 22px 80px}
+    .palette,.tiers,.banned,.vows,.acts,.metaphor{grid-template-columns:1fr 1fr}
+    .acts .act{border-bottom:1px solid var(--rule)}
+    .ch-intro{margin-left:0}
+    .t4{font-size:44px}.t3{font-size:30px}
+    .frontis{padding:70px 0 62px}
+    .iron{flex-wrap:wrap}.iron div{flex:1 1 50%}
+    .audit td:nth-child(3){width:auto}
+  }
+  @media(max-width:560px){
+    .palette,.tiers,.banned,.vows,.acts,.metaphor{grid-template-columns:1fr}
+    .tier,.act{border-right:none;border-bottom:1px solid var(--rule)}
+    .audit,.translate,.motion,.roadmap{font-size:12px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+    .reveal{opacity:1;transform:none}
+  }
+  @media print{
+    body::before{display:none}.toc{display:none}.reveal{opacity:1;transform:none}
+    section{break-inside:avoid;padding:40px 0}.page{padding:0 20px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="colophon">
+    <span><b>单词365 · 册页</b>　Aesthetic Charter</span>
+    <span>Folio 01　/　2026-11-13</span>
+  </div>
+
+  <nav class="toc" aria-label="章节导航">
+    <a href="#s1">01　去塑料感体检</a>
+    <a href="#s2">02　美学宪章</a>
+    <a href="#s3">03　数字化开箱</a>
+    <a href="#s4">04　高溢价重构</a>
+    <a href="#s5">05　落地路线</a>
+  </nav>
+
+  <!-- 扉页 -->
+  <header class="frontis">
+    <div class="seal-mark" aria-hidden="true">册</div>
+    <div class="kicker">F O L I O　·　A　P R I V A T E　L E X I C O N</div>
+    <h1>一日一页，词自成书<span>One page a day, a lexicon of your own</span></h1>
+    <p class="lede">这不是打卡软件，是一座只装在这台电脑里的私人词书房。<br>每天翻开一页，一年装订成册。</p>
+    <p class="oath">你的私人词书房，只在此机，不上传云端</p>
+    <div class="folio-no">— 第 一 册 · 第 一 版 —</div>
+  </header>
+
+  <!-- 01 -->
+  <section id="s1" class="reveal">
+    <div class="ch-head"><div class="ch-no">01</div><h2>去塑料感体检<span class="en">An Audit of the Commonplace</span></h2></div>
+    <p class="ch-intro">工程正确性已经满分：187 个三层令牌、WCAG 2.1 AA、44px 命中区、200 项测试全绿。但正确性可以被复制。这份体检只找一件事——哪些触点在替「通用模板」说话，而不是替这册书说话。</p>
+
+    <h3>十处病灶与处置</h3>
+    <table class="audit">
+      <thead><tr><th></th><th>触点</th><th>现状</th><th>处置</th></tr></thead>
+      <tbody>
+        <tr><td>Ⅰ</td><td>品牌语</td><td>「365天，每天进步一点」</td><td class="fix">改「一日一页，词自成书」；副题立下不上传云端的承诺</td></tr>
+        <tr><td>Ⅱ</td><td>命名</td><td>品类描述型，无装帧体系</td><td class="fix">主名保留，增序列名「册页 / FOLIO」，对外以「第几册·第几版」纪年</td></tr>
+        <tr><td>Ⅲ</td><td>底色</td><td>冷中性灰 <span style="font-family:var(--serif-latin)">#F7F7F4</span> ＋ 纯白卡片</td><td class="fix">暖纸 <span style="font-family:var(--serif-latin)">#F4F1E9</span>；纯白只属于「纸页」</td></tr>
+        <tr><td>Ⅳ</td><td>形状</td><td>14–24px 圆角、渐变封面、浅绿底虚线页签</td><td class="fix">全部直角，撤掉渐变与阴影，激活态改用界栏下压</td></tr>
+        <tr><td>Ⅴ</td><td>字体</td><td>系统字体兜底；衬线只用于词头</td><td class="fix">1.618 韵律字阶，宋体标题／黑体正文，西文 Garamond 本地分发</td></tr>
+        <tr><td>Ⅵ</td><td>首屏</td><td>环形进度＋今日计划数字＋四入口</td><td class="fix">改「扉页」：日期、页码、一个词、一个动作</td></tr>
+        <tr><td>Ⅶ</td><td>断更叙事</td><td>「已断签 47 天」「积压 412 词」</td><td class="fix">「书页停在第 47 页，今日续读一页」</td></tr>
+        <tr><td>Ⅷ</td><td>激励</td><td>小鲸鱼吃一口、加星弹一下、答错抖动</td><td class="fix">桌宠退役；改藏书印与「已装订 N 页」赭金页码</td></tr>
+        <tr><td>Ⅸ</td><td>完成反馈</td><td>按正确率分级的完成页</td><td class="fix">不评级、不庆祝，纸页翻走即可</td></tr>
+        <tr><td>Ⅹ</td><td>交付包装</td><td>双击 exe，直接进首页</td><td class="fix">五幕启封仪式：封缄、题签、授页、入册、闭卷</td></tr>
+      </tbody>
+    </table>
+
+    <div class="verdict"><small>总　判</small>需要剥离的不是功能，是<strong>仪表盘语法</strong>与<strong>励志模板腔</strong>。<br>功能一条都不必删。</div>
+
+    <h3>禁用清单</h3>
+    <div class="banned">
+      <div>渐变与玻璃拟态</div><div>霓虹紫蓝与发光描边</div><div>圆角堆叠与投影分层</div>
+      <div>「太棒了／继续保持」</div><div>环形进度与分数仪表盘</div><div>效果焦虑与提分承诺</div>
+      <div>萌系插画与积分商城</div><div>emoji 与打卡分享</div><div>限时优惠与折扣锚点</div>
+    </div>
+    <p class="kept"><b>完整保留：</b>WCAG 2.1 AA 对比度修复、44px 命中区、统一焦点双环、<span style="font-family:var(--serif-latin)">prefers-contrast / forced-colors / prefers-reduced-motion</span>、600ms 3D 翻页、180ms 防误触、2.6s 撤销。美学升级不以牺牲无障碍为代价。</p>
+  </section>
+
+  <!-- 02 -->
+  <section id="s2" class="reveal">
+    <div class="ch-head"><div class="ch-no">02</div><h2>美学宪章<span class="en">The Charter</span></h2></div>
+    <p class="ch-intro">不从外部硬贴一种风格。风格必须从产品已有的物质性里长出来——这件事本身，就是机器无法代劳的判断。</p>
+
+    <h3>2.1　美学原型：私人书房 · 册页</h3>
+    <div class="metaphor">
+      <div class="row"><span>Logo 是一本打开的书</span><span class="arrow">→</span><span>视觉 DNA 就是「书」，不必另造符号</span></div>
+      <div class="row"><span>五种词书 / 单元 / 词条</span><span class="arrow">→</span><span>词书＝册，单元＝章，单词＝页</span></div>
+      <div class="row"><span>闪卡 3D 翻转 0.6s</span><span class="arrow">→</span><span>翻卡＝翻页，最古老的交互仪式</span></div>
+      <div class="row"><span>26 周热力图</span><span class="arrow">→</span><span>册页年表 / 阅读日历</span></div>
+      <div class="row"><span>数据只存本机、无账号</span><span class="arrow">→</span><span>私人书房：不联网，不被人看见</span></div>
+      <div class="row"><span>460 词精编，不囤考纲</span><span class="arrow">→</span><span>精编本，拒绝词量军备竞赛</span></div>
+    </div>
+    <div class="worldview">每天翻开一页，一年装订成册。<br><span style="font-size:16px;color:var(--mute)">不是「坚持了 365 天」，是「写完了一本书」。</span></div>
+
+    <h3>2.2　调色盘 · 60 / 30 / 8 / 2</h3>
+    <div class="palette">
+      <div class="sw"><div class="chip" style="background:#F4F1E9"></div><div class="meta"><div class="nm">宣纸</div><div class="hex">#F4F1E9</div><div class="use">地 · 全站背景，替代冷灰</div></div></div>
+      <div class="sw"><div class="chip" style="background:#FBF9F3"></div><div class="meta"><div class="nm">素页</div><div class="hex">#FBF9F3</div><div class="use">纸 · 卡片与翻开的页</div></div></div>
+      <div class="sw"><div class="chip" style="background:#1E3A30"></div><div class="meta"><div class="nm">墨松</div><div class="hex">#1E3A30</div><div class="use">墨 · 正文、词头；由现有 #2E5240 加深</div></div></div>
+      <div class="sw"><div class="chip" style="background:#6E736C"></div><div class="meta"><div class="nm">淡墨</div><div class="hex">#6E736C</div><div class="use">次文字、音标；对比度 ≥ 4.5:1</div></div></div>
+      <div class="sw"><div class="chip" style="background:#DCD6C8"></div><div class="meta"><div class="nm">界栏</div><div class="hex">#DCD6C8</div><div class="use">界 · 所有分隔线 1px，禁止阴影</div></div></div>
+      <div class="sw"><div class="chip" style="background:#9C3B2E"></div><div class="meta"><div class="nm">朱印</div><div class="hex">#9C3B2E</div><div class="use">印 · 藏书印与编号，每屏最多一处</div></div></div>
+      <div class="sw"><div class="chip" style="background:#A8874E"></div><div class="meta"><div class="nm">赭金</div><div class="hex">#A8874E</div><div class="use">金 · 页码与烫金边线，不作按钮</div></div></div>
+      <div class="sw"><div class="chip" style="background:#C4BDA9"></div><div class="meta"><div class="nm">旧栏</div><div class="hex">#C4BDA9</div><div class="use">强界栏 · 章分隔与表头</div></div></div>
+    </div>
+    <div class="ratio"><i style="width:60%;background:#F4F1E9"></i><i style="width:30%;background:#1E3A30"></i><i style="width:8%;background:#DCD6C8"></i><i style="width:2%;background:#9C3B2E"></i></div>
+    <div class="ratio-legend">地 60%　·　墨 30%　·　界 8%　·　印 2%　（赭金 &lt; 1%）</div>
+
+    <h3>2.3　人文字体层级 · 1.618 韵律</h3>
+    <div class="type-scale">
+      <div class="ts-row"><div class="lab">Φ⁴<em>63 / 1.05</em></div><div class="t4">achieve</div></div>
+      <div class="ts-row"><div class="lab">Φ³<em>39 / 1.25</em></div><div class="t3">一日一页，词自成书</div></div>
+      <div class="ts-row"><div class="lab">Φ²<em>24 / 1.4</em></div><div class="t2">第一册 · 校园与学习</div></div>
+      <div class="ts-row"><div class="lab">Φ¹<em>17 / 1.5</em></div><div class="t1">翻开今日这一页</div></div>
+      <div class="ts-row"><div class="lab">Φ⁰<em>15 / 1.9</em></div><div class="t0">正文齐左，字距 .02em，字重只到 500；留白负责层级，不靠粗细与色块。</div></div>
+      <div class="ts-row"><div class="lab">Φ⁻¹<em>12 / 1.7</em></div><div class="tm">/əˈtʃiːv/　·　NO. 001　·　丙午年冬　·　第 47 / 365 页</div></div>
+    </div>
+    <p class="note">界面离线可用，字体不得走 CDN。随 exe 附带一份 SIL OFL 开源衬线字体与中文宋体子集，仅新增 1–2 个文件；不引入框架、不引入构建步骤。</p>
+
+    <h3>2.4　空间与留白法则</h3>
+    <ol class="rules">
+      <li><div><b>一屏一页</b>　<span>任一时刻只保留一个视觉焦点；首屏不放环形进度、不放四个入口。</span></div></li>
+      <li><div><b>三息留白</b>　<span>块间 ≥ 24px，页边 ≥ 48px，章间 ≥ 72px；页边不小于页宽的 1/8。</span></div></li>
+      <li><div><b>界栏而非卡片</b>　<span>1px 细线分区，撤销四级阴影；层级靠留白与墨色深浅表达。</span></div></li>
+      <li><div><b>页码即进度</b>　<span>「第 47 / 365 页」的赭金小字。数字存在，但不占视觉中心。</span></div></li>
+      <li><div><b>齐左不齐中</b>　<span>只有词头与藏书印居中，其余一律齐左。</span></div></li>
+    </ol>
+
+    <h3>2.5　微动效：呼吸，不是弹跳</h3>
+    <table class="motion">
+      <thead><tr><th>动作</th><th>参数</th><th>替换 / 保留</th></tr></thead>
+      <tbody>
+        <tr><td>翻页</td><td>600ms · cubic-bezier(.22,.76,.26,1) · 绕 Y 轴 180°</td><td>保留现有 3D 翻转，唯一原生资产</td></tr>
+        <tr><td>界栏呼吸</td><td>240ms 明度变化，无位移</td><td>替换加星弹跳、答错抖动</td></tr>
+        <tr><td>朱印落章</td><td>一次性 600ms，仅首次启动</td><td>新增；无对应旧件</td></tr>
+        <tr><td>换页</td><td>400ms 横向位移＋淡出，不缩放</td><td>替换换页淡入</td></tr>
+        <tr><td>按钮</td><td>120ms 墨色加深一档</td><td>替换渐变与阴影按压</td></tr>
+        <tr><td>减少动态</td><td>prefers-reduced-motion 下全部关闭</td><td>已有能力，完整保留</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 03 -->
+  <section id="s3" class="reveal">
+    <div class="ch-head"><div class="ch-no">03</div><h2>数字化开箱仪式<span class="en">The Unbinding</span></h2></div>
+    <p class="ch-intro">交付的第一分钟决定这件东西值多少钱。首次启动不是「首页」，是「启封」。五幕，不庆祝、不评分、不催促——所有反馈都只是书页状态的变化。</p>
+    <div class="acts">
+      <div class="act"><div class="no">Ⅰ</div><h4>启封</h4><div class="line">「这册书只属于这台电脑。」<br>满纸素白，中央一枚朱印「封」。</div><div class="strip">空格 → 印淡去，纸面右翻<br><span style="color:var(--seal)">剥离：直接进仪表盘</span></div></div>
+      <div class="act"><div class="no">Ⅱ</div><h4>题签</h4><div class="line">「题上你的名字，这册书便有了主人。」<br>藏书票、编号、年款。</div><div class="strip">署名可留空 → 「无名氏」<br><span style="color:var(--seal)">剥离：无所有权暗示</span></div></div>
+      <div class="act"><div class="no">Ⅲ</div><h4>授页</h4><div class="line">「第一页 · 第 1 词」<br>衬线大字 achieve，一句挖空例句。</div><div class="strip">空格翻面 → 释义与例句<br><span style="color:var(--seal)">剥离：首屏任务数字</span></div></div>
+      <div class="act"><div class="no">Ⅳ</div><h4>入册</h4><div class="line">「再读一页 / 收进重读 / 此页已装订」<br>右上角浮出一枚赭金页码。</div><div class="strip">评级三档逻辑不动，只换文案<br><span style="color:var(--seal)">剥离：完成页正确率</span></div></div>
+      <div class="act"><div class="no">Ⅴ</div><h4>闭卷</h4><div class="line">「今日读到第 1 页。」<br>纸面合拢，界栏收为一条细线。</div><div class="strip">「明日续读」或 Esc<br><span style="color:var(--seal)">剥离：确定退出？/ 太棒了</span></div></div>
+    </div>
+    <div class="iron"><div>不<b>庆祝</b></div><div>不<b>评分</b></div><div>不<b>催促</b></div><div>不<b>索取</b></div></div>
+    <p class="note">与既有能力衔接：首词 achieve 取自 cet4 主题重排后的实际首词；空格翻面、评级三档、防误触 180ms、撤销 2.6s 全部保留。错词本、星标、四种模式的逻辑不动，只把入口改名为「待重读的书页」。<br>与 V2 功能路线不冲突：防积压熔断在美学层叫「重排书页」，记忆强度叫「此页墨色尚浅」——算法照做，不对外展示百分比仪表盘。</p>
+  </section>
+
+  <!-- 04 -->
+  <section id="s4" class="reveal">
+    <div class="ch-head"><div class="ch-no">04</div><h2>高溢价重构<span class="en">Artistic Encapsulation</span></h2></div>
+    <p class="ch-intro">从「功能工时计价」跃迁到「艺术认同定价」。卖的不再是词量与模式数量，而是署名权、编号稀缺性，以及主理人不可批量生产的时间。</p>
+
+    <div class="tiers">
+      <div class="tier">
+        <div class="lv">Tier I</div><h4>单册</h4><div class="en2">Folio</div>
+        <div class="price">¥198<small>永久授权</small></div>
+        <div class="basis">稀缺来源 · 时间</div>
+        <ul><li>单机永久使用，全部内容更新</li><li>藏书票与册页年表</li><li>五本词书与自制词书</li><li>一次买断，不订阅</li></ul>
+        <div class="scarce">不索取：无账号、无云、无联网要求</div>
+      </div>
+      <div class="tier featured">
+        <div class="stamp">每年限 300 册</div>
+        <div class="lv">Tier II</div><h4>限定装帧</h4><div class="en2">Bound</div>
+        <div class="price">¥680<small>／年 · 定额</small></div>
+        <div class="basis">稀缺来源 · 编号</div>
+        <ul><li>含单册全部权益</li><li>编号藏书票 No.001–300</li><li>专属纸纹与烫金装帧</li><li>每季一册人工编选精编词册</li><li>主理人手写欢迎信</li></ul>
+        <div class="scarce">售罄即止，不补印、不重号</div>
+      </div>
+      <div class="tier">
+        <div class="lv">Tier III</div><h4>私人词书房</h4><div class="en2">Atelier</div>
+        <div class="price">¥2,800<small>起 · 每月 4 单</small></div>
+        <div class="basis">稀缺来源 · 人的时间</div>
+        <ul><li>含限定装帧全部权益</li><li>按真实阅读／工作语料一对一编订 200 词</li><li>例句与义项人工校订</li><li>专属装帧与一次主理人通信</li></ul>
+        <div class="scarce">一人公司最该卖的东西：判断力</div>
+      </div>
+    </div>
+
+    <h3>把「限制」写成「特权」</h3>
+    <table class="translate">
+      <thead><tr><th>现有事实</th><th>旧读法</th><th>封装后</th></tr></thead>
+      <tbody>
+        <tr><td>单 exe 绿色版</td><td>没有安装包，显得简陋</td><td>「无需安装，一册随身」</td></tr>
+        <tr><td>界面离线可用</td><td>功能不全</td><td>「不依赖网络，书房恒在」</td></tr>
+        <tr><td>数据只存本机</td><td>不能多端同步</td><td>「你的笔记不进入任何人的服务器」</td></tr>
+        <tr><td>无账号体系</td><td>缺少现代功能</td><td>「我们不要求你登录，也不收集你的进度」</td></tr>
+        <tr><td>460 词精编、不囤考纲</td><td>词量太少</td><td>「精编 460 词，每一条都有出处与例句」</td></tr>
+        <tr><td>局域网同步需电脑常开</td><td>多端体验割裂</td><td>「只在你家的 Wi-Fi 里流转」</td></tr>
+      </tbody>
+    </table>
+
+    <h3>无折扣四戒</h3>
+    <div class="vows">
+      <div><div class="v">不打折</div><p>不参与大促、不设券、不限时；价格单向上升，老用户锁定购入价。折扣会摧毁藏品属性。</p></div>
+      <div><div class="v">不比价</div><p>官网不写高效 / 速记 / 提分 / 领先，不放竞品对比表，不投放效果焦虑。</p></div>
+      <div><div class="v">不试用全功能</div><p>只给「试读 7 页」：七词、一次启封、不可导出。门槛本身就是筛选。</p></div>
+      <div><div class="v">不扩量</div><p>限定装帧每年 300 册售罄即止，私人词书房每月限 4 单。稀缺必须真实。</p></div>
+    </div>
+    <p class="note">审美门槛：首屏不放功能清单、不放价格锚点、不放「立即免费下载」大按钮；只放一页纸、一枚印、一句话。愿意读完题签的人，才是这三档价格的对象。</p>
+  </section>
+
+  <!-- 05 -->
+  <section id="s5" class="reveal">
+    <div class="ch-head"><div class="ch-no">05</div><h2>落地路线<span class="en">The Binding</span></h2></div>
+    <p class="ch-intro">现有三层令牌结构（L1 Primitive → L2 Semantic → L3 Component）恰好支持「只换 L1 值」：组件层引用 L2/L3 的规则无需改动，这让换肤几乎不动业务代码。</p>
+    <table class="roadmap">
+      <thead><tr><th>阶段</th><th>动作</th><th>验收 / 约束</th></tr></thead>
+      <tbody>
+        <tr><td>一 · 定调</td><td>以独立原型验证语汇，评审通过后再进项目</td><td>主理人确认「册页」原型与本宪章</td></tr>
+        <tr><td>二 · 换肤</td><td>只替换 L1 色值、字阶、圆角、阴影令牌</td><td>200 项 + 设计规范 109 项全绿；dist 四文件逐字节一致</td></tr>
+        <tr><td>三 · 换文案</td><td>另立词表，逐条对齐既有「单词 / 已掌握 / 学习中 / 未学」约束</td><td>无「学会了 / 词汇」违规词，无励志套话</td></tr>
+        <tr><td>四 · 退役桌宠</td><td>保留开关但默认关闭，移除喂食与升级叙事</td><td>排在本期上线之后，不触碰 v1.10「不改桌宠」硬边界</td></tr>
+        <tr><td>五 · 加装帧</td><td>首次启动分支＋本地标记，不新增路由</td><td>老用户不强制重走仪式；SCHEMA 保持 3，数据零迁移</td></tr>
+        <tr><td>六 · 定价格</td><td>三层藏品、编号规则、试读 7 页</td><td>编号唯一不可重号；无折扣写进对外条款</td></tr>
+      </tbody>
+    </table>
+    <p class="note"><b>明确不冲突：</b>v1.10 本期硬边界「不新增界面 / 页面 / 组件、不改四种学习模式、不改错词本毕业逻辑、不升 SCHEMA」全部保留。本方案所有界面改造排在阶段二以后，数据层零改动。<br><b>不做什么：</b>不删功能、不改算法、不引入框架与 CDN、不做账号与云同步、不用 emoji 与萌系插画、不打折、不把提案写成实测。</p>
+  </section>
+
+  <div class="closing reveal">
+    <div class="mark" aria-hidden="true">印</div>
+    <div class="q">机器可以合成一百万张卡片，<br>但无法替你决定，<br>这一页该留多少空白。</div>
+    <div class="sig">单词365 · 册页　／　FOLIO 01　／　丙午年冬</div>
+  </div>
+
+  <footer>
+    <span>美学宪章 · 提案文本　｜　所有界面改造均为后续版本建议</span>
+    <span>配套：开箱仪式交互原型 · 重构方案文档</span>
+  </footer>
+</div>
+
+<script>
+  (function(){
+    var items = document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window)){
+      items.forEach(function(el){el.classList.add('in')}); return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    },{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+    items.forEach(function(el){io.observe(el)});
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单词365 · 册页｜数字化开箱仪式 交互原型</title>
+<style>
+  :root{
+    --desk:#E7E1D3;
+    --paper:#F4F1E9;
+    --leaf:#FBF9F3;
+    --ink:#1E3A30;
+    --soft:#3F534A;
+    --mute:#6E736C;
+    --rule:#DCD6C8;
+    --rule2:#C4BDA9;
+    --seal:#9C3B2E;
+    --gold:#A8874E;
+    --lat:"EB Garamond","Cormorant Garamond",Georgia,"Times New Roman",serif;
+    --cn:"Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+    --sans:"Microsoft YaHei UI","PingFang SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+    --ease:cubic-bezier(.22,.7,.3,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--desk);color:var(--ink);font-family:var(--sans);font-size:15px;
+    letter-spacing:.02em;-webkit-font-smoothing:antialiased;
+    display:flex;align-items:center;justify-content:center;padding:32px 20px;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.035;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .shell{width:min(1080px,100%);position:relative;z-index:1}
+
+  .prelude{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;font-size:11.5px;letter-spacing:.16em;color:var(--mute)}
+  .prelude b{font-weight:500;color:var(--soft);letter-spacing:.1em}
+
+  .window{
+    background:var(--paper);border:1px solid var(--rule2);
+    box-shadow:0 0 0 6px rgba(244,241,233,.5);
+    position:relative;overflow:hidden;
+  }
+  .titlebar{
+    height:44px;border-bottom:1px solid var(--rule);display:flex;align-items:center;
+    justify-content:space-between;padding:0 20px;background:var(--leaf);
+  }
+  .tb-l{font-family:var(--cn);font-size:14px;letter-spacing:.14em}
+  .tb-l em{font-family:var(--lat);font-style:italic;font-size:12px;color:var(--mute);letter-spacing:.1em;margin-left:10px}
+  .tb-r{display:flex;gap:4px}
+  .tb-r button{
+    background:none;border:1px solid transparent;color:var(--mute);font-family:var(--sans);
+    font-size:11.5px;letter-spacing:.08em;padding:6px 10px;cursor:pointer;transition:all .24s var(--ease);
+  }
+  .tb-r button:hover{color:var(--seal);border-color:var(--rule2)}
+  .tb-r button.on{color:var(--seal);border-color:var(--seal)}
+
+  .indicator{height:38px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:center;gap:0}
+  .indicator .step{
+    display:flex;align-items:center;gap:9px;padding:0 18px;font-family:var(--lat);font-style:italic;
+    font-size:14px;color:var(--rule2);border-right:1px solid var(--rule);height:100%;transition:color .3s var(--ease);
+  }
+  .indicator .step:last-child{border-right:none}
+  .indicator .step span{font-family:var(--cn);font-style:normal;font-size:11.5px;letter-spacing:.1em}
+  .indicator .step.cur{color:var(--seal)}
+  .indicator .step.done{color:var(--gold)}
+
+  .stage{position:relative;height:452px;perspective:1600px;background:var(--paper);overflow:hidden}
+  .scene{
+    position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:34px 56px;text-align:center;background:var(--paper);
+  }
+  .scene.active{display:flex;animation:enter .46s var(--ease) both}
+  .scene.leaving{display:flex;animation:leave .34s var(--ease) both;pointer-events:none}
+  @keyframes enter{from{opacity:0;transform:rotateY(7deg) translateX(22px)}to{opacity:1;transform:none}}
+  @keyframes leave{from{opacity:1;transform:none}to{opacity:0;transform:rotateY(-7deg) translateX(-22px)}}
+
+  .micro{font-size:11px;letter-spacing:.24em;color:var(--gold);margin-bottom:20px}
+  .line-l{font-family:var(--cn);font-size:22px;letter-spacing:.1em;line-height:1.9}
+  .hint{font-size:12.5px;color:var(--mute);letter-spacing:.1em;margin-top:26px}
+  .hint kbd{font-family:var(--lat);font-style:italic;border:1px solid var(--rule2);padding:2px 8px;margin:0 3px;color:var(--soft)}
+
+  /* Ⅰ 启封 */
+  .seal-big{
+    width:118px;height:118px;border:3px solid var(--seal);color:var(--seal);
+    display:grid;place-items:center;font-family:var(--cn);font-size:62px;line-height:1;
+    transform:rotate(-4deg);margin-bottom:36px;
+    animation:stamp .8s cubic-bezier(.22,.76,.26,1) both;
+  }
+  @keyframes stamp{from{opacity:0;transform:rotate(-4deg) scale(1.2)}to{opacity:.94;transform:rotate(-4deg) scale(1)}}
+  .seal-sub{font-family:var(--lat);font-style:italic;font-size:12px;color:var(--mute);letter-spacing:.18em;margin-top:34px}
+  .s0 .oath{margin-top:12px;font-size:12px;color:var(--mute);letter-spacing:.1em}
+
+  /* Ⅱ 题签 */
+  .exlibris{
+    width:380px;max-width:100%;border:1px solid var(--rule2);padding:22px 26px 20px;
+    background:var(--leaf);position:relative;margin-bottom:24px;
+  }
+  .exlibris::after{content:"";position:absolute;inset:5px;border:1px solid var(--rule);pointer-events:none}
+  .ex-top{font-family:var(--lat);font-size:11px;letter-spacing:.32em;color:var(--gold)}
+  .ex-rule{height:1px;background:var(--rule2);margin:14px 0 20px}
+  .ex-name{font-family:var(--cn);font-size:30px;letter-spacing:.14em;min-height:44px;line-height:1.5;color:var(--ink)}
+  .ex-name.empty{color:var(--rule2)}
+  .ex-sub{font-family:var(--cn);font-size:15px;letter-spacing:.16em;color:var(--soft);margin-top:2px}
+  .ex-bottom{display:flex;justify-content:space-between;margin-top:26px;font-family:var(--lat);font-size:12px;letter-spacing:.14em;color:var(--mute)}
+  .ex-seal{position:absolute;right:22px;bottom:52px;width:34px;height:34px;border:1.5px solid var(--seal);color:var(--seal);display:grid;place-items:center;font-family:var(--cn);font-size:17px;transform:rotate(-5deg);opacity:0;transition:opacity .6s var(--ease)}
+  .ex-seal.on{opacity:.9}
+  .sign-row{display:flex;gap:0;align-items:stretch;margin-top:6px}
+  .sign-row input{
+    width:230px;max-width:52vw;background:transparent;border:none;border-bottom:1px solid var(--rule2);
+    font-family:var(--cn);font-size:16px;letter-spacing:.1em;color:var(--ink);padding:8px 4px;outline:none;
+    transition:border-color .24s var(--ease);
+  }
+  .sign-row input::placeholder{color:var(--rule2);font-size:13px;letter-spacing:.08em}
+  .sign-row input:focus{border-bottom-color:var(--seal)}
+  .sign-row button{
+    background:none;border:none;border-bottom:1px solid var(--rule2);color:var(--seal);
+    font-family:var(--cn);font-size:14px;letter-spacing:.14em;padding:8px 16px;cursor:pointer;
+    transition:color .24s var(--ease),border-color .24s var(--ease);
+  }
+  .sign-row button:hover{border-bottom-color:var(--seal)}
+
+  /* Ⅲ / Ⅳ 授页 */
+  .page-head{
+    position:absolute;top:22px;left:56px;right:56px;display:flex;justify-content:space-between;
+    font-size:11.5px;letter-spacing:.16em;color:var(--mute);border-bottom:1px solid var(--rule);padding-bottom:10px;
+  }
+  .page-head .folio{font-family:var(--lat);font-size:12.5px;letter-spacing:.12em;color:var(--gold)}
+  .bound{
+    position:absolute;top:20px;right:56px;font-family:var(--lat);font-size:13px;letter-spacing:.12em;
+    color:var(--gold);opacity:0;transform:translateY(-6px);transition:all .6s var(--ease);
+  }
+  .bound.on{opacity:1;transform:none}
+  .flip{width:100%;max-width:640px;height:262px;perspective:1400px;margin-top:14px;cursor:pointer}
+  .flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.22,.76,.26,1)}
+  .flip.flipped .flip-inner{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--leaf);border:1px solid var(--rule2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+  }
+  .face.back{transform:rotateY(180deg)}
+  .word{font-family:var(--lat);font-size:clamp(42px,6vw,63px);line-height:1.05;letter-spacing:.01em;color:var(--ink)}
+  .ipa{font-family:var(--lat);font-size:14px;color:var(--mute);letter-spacing:.08em;margin-top:10px}
+  .sentence{font-family:var(--lat);font-size:18px;line-height:1.7;color:var(--soft);margin-top:24px;letter-spacing:.01em}
+  .blank{display:inline-block;min-width:96px;border-bottom:1px solid var(--seal);color:var(--seal);font-style:italic}
+  .back .pos{font-family:var(--lat);font-style:italic;font-size:15px;color:var(--gold);letter-spacing:.08em}
+  .back .def{font-family:var(--cn);font-size:25px;letter-spacing:.12em;margin-top:12px}
+  .back .full{font-family:var(--lat);font-size:16px;color:var(--soft);margin-top:22px;line-height:1.7}
+  .back .full b{font-weight:400;color:var(--seal);font-style:italic}
+  .back .zh{font-family:var(--cn);font-size:13px;color:var(--mute);letter-spacing:.08em;margin-top:8px}
+  .page-foot{margin-top:22px;min-height:46px;display:flex;align-items:center;justify-content:center;gap:0}
+  .page-foot .tip{font-size:12.5px;color:var(--mute);letter-spacing:.1em}
+  .choices{display:flex;gap:0;border:1px solid var(--rule2);background:var(--leaf)}
+  .choices button{
+    background:none;border:none;border-right:1px solid var(--rule);color:var(--soft);
+    font-family:var(--cn);font-size:14px;letter-spacing:.12em;padding:12px 22px;cursor:pointer;
+    transition:color .24s var(--ease),background .24s var(--ease);
+  }
+  .choices button:last-child{border-right:none;color:var(--seal)}
+  .choices button:hover{background:rgba(168,135,78,.09);color:var(--seal)}
+  .chosen{font-family:var(--cn);font-size:15px;letter-spacing:.1em;color:var(--gold)}
+
+  /* Ⅴ 闭卷 */
+  .close-rule{width:0;height:1px;background:var(--rule2);margin:0 auto 34px;animation:draw 1s var(--ease) .15s both}
+  @keyframes draw{to{width:min(420px,76%)}}
+  .close-q{font-family:var(--cn);font-size:27px;letter-spacing:.14em;line-height:1.9}
+  .close-sub{font-size:12.5px;color:var(--mute);letter-spacing:.12em;margin-top:20px}
+  .close-btns{display:flex;gap:14px;margin-top:34px}
+  .close-btns button{
+    background:none;border:1px solid var(--rule2);color:var(--soft);font-family:var(--cn);
+    font-size:14px;letter-spacing:.14em;padding:11px 26px;cursor:pointer;transition:all .24s var(--ease);
+  }
+  .close-btns button.primary{border-color:var(--ink);color:var(--ink)}
+  .close-btns button:hover{border-color:var(--seal);color:var(--seal)}
+
+  .footbar{
+    height:46px;border-top:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;font-size:11.5px;color:var(--mute);letter-spacing:.08em;background:var(--leaf);
+  }
+  .footbar .keys{font-family:var(--lat);font-style:italic;letter-spacing:.06em}
+  .footbar .keys i{font-style:normal;color:var(--soft);border:1px solid var(--rule2);padding:1px 6px;margin:0 2px}
+
+  /* 注解面板 */
+  .notes{
+    position:absolute;top:44px;right:0;bottom:46px;width:290px;background:var(--leaf);
+    border-left:1px solid var(--rule2);padding:26px 24px;transform:translateX(100%);
+    transition:transform .42s var(--ease);z-index:9;overflow:auto;
+  }
+  .notes.open{transform:none}
+  .notes .nh{font-family:var(--cn);font-size:17px;letter-spacing:.1em;margin-bottom:6px}
+  .notes .ne{font-family:var(--lat);font-style:italic;font-size:12px;color:var(--gold);letter-spacing:.1em}
+  .notes hr{border:none;border-top:1px solid var(--rule);margin:18px 0}
+  .notes .nt{font-family:var(--cn);font-size:15px;letter-spacing:.08em;color:var(--seal);margin-bottom:10px}
+  .notes p{font-size:12.5px;line-height:1.9;color:var(--soft);margin-bottom:12px}
+  .notes .strip{font-size:11.5px;color:var(--mute);border-left:2px solid var(--gold);padding-left:10px;line-height:1.8}
+  .notes .nb{font-size:11px;color:var(--mute);letter-spacing:.1em;margin-top:26px}
+
+  .afterword{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:14px;font-size:11.5px;color:var(--mute);letter-spacing:.08em}
+  :focus-visible{outline:1.5px solid var(--seal);outline-offset:3px}
+  ::selection{background:rgba(156,59,46,.16)}
+
+  @media(max-width:760px){
+    body{padding:16px 10px}
+    .stage{height:470px}
+    .scene{padding:26px 22px}
+    .page-head{left:22px;right:22px}
+    .bound{right:22px;top:54px}
+    .indicator .step{padding:0 10px;gap:5px}
+    .indicator .step span{display:none}
+    .notes{width:min(290px,86%)}
+    .footbar .keys{display:none}
+    .close-q{font-size:21px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="prelude"><span><b>单词365 · 册页</b>　数字化开箱仪式</span><span>INTERACTIVE PROTOTYPE　/　FOLIO 01</span></div>
+
+  <div class="window" id="win">
+    <div class="titlebar">
+      <div class="tb-l">册页 <em>A Private Lexicon</em></div>
+      <div class="tb-r">
+        <button type="button" id="noteBtn" title="按 N 切换">设计注解　N</button>
+        <button type="button" id="resetBtn" title="按 R 重置">重新启封　R</button>
+      </div>
+    </div>
+
+    <div class="indicator" id="indicator" aria-label="五幕进度">
+      <div class="step" data-i="0">Ⅰ<span>启封</span></div>
+      <div class="step" data-i="1">Ⅱ<span>题签</span></div>
+      <div class="step" data-i="2">Ⅲ<span>授页</span></div>
+      <div class="step" data-i="3">Ⅳ<span>入册</span></div>
+      <div class="step" data-i="4">Ⅴ<span>闭卷</span></div>
+    </div>
+
+    <div class="stage" id="stage">
+
+      <!-- Ⅰ 启封 -->
+      <section class="scene s0 active" data-scene="0">
+        <div class="seal-big" aria-hidden="true">封</div>
+        <div class="line-l">这册书只属于这台电脑。</div>
+        <div class="oath">不登录　·　不联网　·　不收集</div>
+        <div class="hint">按 <kbd>空格</kbd> 启封，或轻点纸面</div>
+        <div class="seal-sub">Folio 01 · No. 001</div>
+      </section>
+
+      <!-- Ⅱ 题签 -->
+      <section class="scene s1" data-scene="1">
+        <div class="micro">E X　L I B R I S</div>
+        <div class="exlibris">
+          <div class="ex-top">EX LIBRIS</div>
+          <div class="ex-rule"></div>
+          <div class="ex-name empty" id="exName">　　　　</div>
+          <div class="ex-sub">的词书房</div>
+          <div class="ex-bottom"><span>No. 001</span><span>丙午年冬</span></div>
+          <div class="ex-seal" id="exSeal" aria-hidden="true">印</div>
+        </div>
+        <div class="line-l" style="font-size:16px">题上你的名字，这册书便有了主人。</div>
+        <div class="sign-row">
+          <input id="nameInput" type="text" maxlength="12" placeholder="留白亦可" autocomplete="off" spellcheck="false">
+          <button type="button" id="signBtn">题签</button>
+        </div>
+        <div class="hint">署名可留空　·　按 <kbd>空格</kbd> 直接翻到第一页</div>
+      </section>
+
+      <!-- Ⅲ 授页 / Ⅳ 入册 共用一张卡，翻面即换幕 -->
+      <section class="scene s23" data-scene="23">
+        <div class="page-head"><span id="pageHead">第一页 · 第 1 词</span><span class="folio">第 1 / 365 页</span></div>
+        <div class="bound" id="bound">已装订 01 页</div>
+        <div class="flip" id="flip" title="按空格翻面">
+          <div class="flip-inner">
+            <div class="face front">
+              <div class="word">achieve</div>
+              <div class="ipa">/əˈtʃiːv/</div>
+              <div class="sentence">Small daily gains <span class="blank">&nbsp;</span> more than sudden bursts.</div>
+            </div>
+            <div class="face back">
+              <div class="pos">v.</div>
+              <div class="def">实现，达到</div>
+              <div class="full">Small daily gains <b>achieve</b> more than sudden bursts.</div>
+              <div class="zh">每日寸进，胜过时而猛进。</div>
+            </div>
+          </div>
+        </div>
+        <div class="page-foot" id="pageFoot"></div>
+      </section>
+
+      <!-- Ⅴ 闭卷 -->
+      <section class="scene s4" data-scene="4">
+        <div class="micro">F I N I S　·　P A G E　O N E</div>
+        <div class="close-rule"></div>
+        <div class="close-q">今日读到第 1 页。</div>
+        <div class="close-sub" id="closeSub">合卷，明日续读。</div>
+        <div class="close-btns">
+          <button type="button" class="primary" id="againBtn">重新启封</button>
+          <button type="button" id="noteBtn2">读一读设计注解</button>
+        </div>
+      </section>
+
+    </div>
+
+    <aside class="notes" id="notes" aria-label="设计注解">
+      <div class="nh" id="noteTitle">启封</div>
+      <div class="ne" id="noteEn">Act I · The Unsealing</div>
+      <hr>
+      <div class="nt">这一幕剥离了什么</div>
+      <p id="noteBody">首次启动不再直接进「今日任务环形进度 + 计划数字」仪表盘。用户被迎接时看到的第一件东西，是一句所有权声明，不是一份欠账。</p>
+      <div class="strip" id="noteStrip">不庆祝　·　不评分　·　不催促　·　不索取</div>
+      <div class="nb">按 N 收起注解　/　R 重新启封</div>
+    </aside>
+
+    <div class="footbar">
+      <span id="footLabel">Ⅰ　启封</span>
+      <span class="keys"><i>Space</i> 推进　<i>←</i> 回退　<i>N</i> 注解　<i>R</i> 重置</span>
+    </div>
+  </div>
+
+  <div class="afterword">
+    <span>原型为独立演示件，不改动 word365 任何代码；首词 achieve 取自 cet4 主题重排后的实际首词。</span>
+    <span>空格翻面 / 评级三档 / 600ms 翻转 / 防误触等既有交互在此仅作语汇演示。</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var ACTS = ['Ⅰ　启封','Ⅱ　题签','Ⅲ　授页','Ⅳ　入册','Ⅴ　闭卷'];
+  var NOTES = [
+    {t:'启封',e:'Act I · The Unsealing',
+     b:'首次启动不再直接进「今日任务环形进度 + 计划数字」仪表盘。用户被迎接时看到的第一件东西，是一句所有权声明，不是一份欠账。朱印落章只出现这一次。',
+     s:'不庆祝　·　不评分　·　不催促　·　不索取'},
+    {t:'题签',e:'Act II · Ex Libris',
+     b:'署名权是藏品感的核心：写下名字，工具才变成「我的」。允许留空。不索取手机号、不建账号——这与产品「数据只存本机、无账号体系」的既有事实一致，而不是一句营销话。',
+     s:'编号 No.001　·　年款丙午　·　可留白'},
+    {t:'授页',e:'Act III · The First Page',
+     b:'保留产品原有的 600ms 3D 翻转，把「卡片」重新解释为「书页」。词头用 Φ⁴ 衬线大字，是这一屏唯一的视觉焦点；任务量退到次级页面。',
+     s:'Φ⁴ 63px 衬线　·　挖空例句　·　空格翻面'},
+    {t:'入册',e:'Act IV · Bound',
+     b:'评级三档的逻辑一条都不改，只换文案：不再判分，不再有正确率完成页。选定之后，右上角浮出一枚赭金页码——反馈是书页状态的变化，不是对用户表现的评价。',
+     s:'反馈型动效 → 呼吸型明度变化　·　240ms'},
+    {t:'闭卷',e:'Act V · Finis',
+     b:'退出不是「确定退出？」也不是「太棒了，继续保持」。纸面合拢，界栏收束为一条细线，留一句陈述。合卷之后不追加任何挽留或推送。',
+     s:'今日读到第 1 页　·　无挽留　·　无分享'}
+  ];
+
+  var state = { act:0, name:'', signed:false, flipped:false, chosen:'', notes:false };
+  var $ = function(id){ return document.getElementById(id); };
+  var scenes = { 0:$('win').querySelector('[data-scene="0"]'), 1:$('win').querySelector('[data-scene="1"]'), 23:$('win').querySelector('[data-scene="23"]'), 4:$('win').querySelector('[data-scene="4"]') };
+  var map = {0:0,1:1,2:23,3:23,4:4};
+
+  function sceneFor(a){ return scenes[map[a]]; }
+
+  function render(direction){
+    var target = sceneFor(state.act);
+    Object.keys(scenes).forEach(function(k){
+      var el = scenes[k];
+      if(el !== target && el.classList.contains('active')){
+        el.classList.remove('active');
+        el.classList.add('leaving');
+        (function(node){ setTimeout(function(){ node.classList.remove('leaving'); }, 340); })(el);
+      }
+    });
+    if(!target.classList.contains('active')){
+      target.classList.remove('leaving');
+      void target.offsetWidth;
+      target.classList.add('active');
+    }
+
+    // 进度指示
+    Array.prototype.forEach.call(document.querySelectorAll('.step'),function(el){
+      var i = +el.dataset.i;
+      el.classList.toggle('cur', i === state.act);
+      el.classList.toggle('done', i < state.act);
+    });
+    $('footLabel').textContent = ACTS[state.act];
+
+    // 卡片翻面与页脚
+    $('flip').classList.toggle('flipped', state.act >= 3);
+    var foot = $('pageFoot');
+    if(state.act === 2){
+      foot.innerHTML = '<span class="tip">空格，翻到背面</span>';
+      $('pageHead').textContent = '第一页 · 第 1 词';
+    }else if(state.act === 3){
+      if(state.chosen){
+        foot.innerHTML = '<span class="chosen">' + state.chosen + '　·　按空格合卷</span>';
+      }else{
+        foot.innerHTML = '<div class="choices">'
+          + '<button type="button" data-choice="再读一页">再读一页</button>'
+          + '<button type="button" data-choice="收进重读">收进重读</button>'
+          + '<button type="button" data-choice="此页已装订">此页已装订</button>'
+          + '</div>';
+        Array.prototype.forEach.call(foot.querySelectorAll('button'),function(b){
+          b.addEventListener('click',function(ev){ ev.stopPropagation(); choose(b.dataset.choice); });
+        });
+      }
+      $('pageHead').textContent = '第一页 · 第 1 词（背面）';
+    }
+    $('bound').classList.toggle('on', !!state.chosen && state.act === 3);
+
+    // 闭卷落款
+    if(state.act === 4){
+      var who = state.name || '无名氏';
+      $('closeSub').textContent = who + ' 的词书房　·　合卷，明日续读。';
+    }
+
+    // 注解
+    var n = NOTES[state.act];
+    $('noteTitle').textContent = n.t;
+    $('noteEn').textContent = n.e;
+    $('noteBody').textContent = n.b;
+    $('noteStrip').textContent = n.s;
+  }
+
+  function go(next){
+    if(next < 0 || next > 4 || next === state.act) return;
+    // 第二幕直接推进时按留空处理
+    if(state.act === 1 && next === 2 && !state.signed){ sign(''); }
+    state.act = next;
+    render();
+  }
+
+  function sign(name){
+    state.name = (name || '').trim();
+    state.signed = true;
+    $('exName').textContent = state.name || '无名氏';
+    $('exName').classList.remove('empty');
+    $('exSeal').classList.add('on');
+    $('nameInput').value = state.name;
+  }
+
+  function choose(label){
+    if(state.chosen) return;
+    state.chosen = label;
+    $('bound').classList.add('on');
+    render();
+  }
+
+  function toggleNotes(force){
+    state.notes = (typeof force === 'boolean') ? force : !state.notes;
+    $('notes').classList.toggle('open', state.notes);
+    $('noteBtn').classList.toggle('on', state.notes);
+  }
+
+  function reset(){
+    state.act = 0; state.name = ''; state.signed = false;
+    state.flipped = false; state.chosen = '';
+    $('exName').textContent = '　　　　';
+    $('exName').classList.add('empty');
+    $('exSeal').classList.remove('on');
+    $('nameInput').value = '';
+    $('bound').classList.remove('on');
+    $('flip').classList.remove('flipped');
+    render();
+  }
+
+  // 纸面点击推进（不拦截输入与按钮）
+  $('stage').addEventListener('click', function(e){
+    if(e.target.closest('button') || e.target.closest('input') || e.target.closest('.choices')) return;
+    if(state.act === 0){ go(1); }
+    else if(state.act === 2){ go(3); }
+    else if(state.act === 3 && state.chosen){ go(4); }
+  });
+
+  $('flip').addEventListener('click', function(e){
+    e.stopPropagation();
+    if(state.act === 2) go(3);
+  });
+
+  $('signBtn').addEventListener('click', function(e){
+    e.stopPropagation(); sign($('nameInput').value);
+    setTimeout(function(){ go(2); }, 480);
+  });
+  $('nameInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); e.stopPropagation(); sign(this.value); setTimeout(function(){ go(2); }, 480); }
+  });
+  $('againBtn').addEventListener('click', function(e){ e.stopPropagation(); reset(); });
+  $('noteBtn').addEventListener('click', function(e){ e.stopPropagation(); toggleNotes(); });
+  $('noteBtn2').addEventListener('click', function(e){ e.stopPropagation(); toggleNotes(true); });
+  $('resetBtn').addEventListener('click', function(e){ e.stopPropagation(); reset(); });
+
+  document.addEventListener('keydown', function(e){
+    var typing = document.activeElement && document.activeElement.tagName === 'INPUT';
+    if(e.key === 'n' || e.key === 'N'){ if(!typing){ e.preventDefault(); toggleNotes(); } return; }
+    if(e.key === 'r' || e.key === 'R'){ if(!typing){ e.preventDefault(); reset(); } return; }
+    if(typing) return;
+    if(e.key === ' ' || e.key === 'Spacebar' || e.key === 'ArrowRight' || e.key === 'Enter'){
+      e.preventDefault();
+      if(state.act === 0) go(1);
+      else if(state.act === 1){ if(!state.signed) sign(''); go(2); }
+      else if(state.act === 2) go(3);
+      else if(state.act === 3 && state.chosen) go(4);
+    }else if(e.key === 'ArrowLeft'){
+      e.preventDefault();
+      if(state.act === 1){ go(0); }
+      else if(state.act === 2){ go(1); }
+      else if(state.act === 3){ state.chosen=''; $('bound').classList.remove('on'); go(2); }
+      else if(state.act === 4){ go(3); }
+    }else if(e.key === 'Escape'){
+      if(state.notes) toggleNotes(false);
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

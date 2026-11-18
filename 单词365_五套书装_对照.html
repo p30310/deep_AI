@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单词365 · 五套书装对照</title>
+<style>
+  :root{
+    --ui-bg:#EDEAE3; --ui-card:#FBF9F3; --ui-ink:#1F2421; --ui-ink2:#4A514C;
+    --ui-ink3:#6E756F; --ui-line:#D6D0C2; --ui-strong:#B9B2A2; --ui-seal:#8E3A2E;
+    --ui-cn:"Songti SC","STSong","SimSun",serif;
+    --ui-lat:"EB Garamond",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ui-bg); color:var(--ui-ink);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei UI",sans-serif;
+    font-size:14px; line-height:1.7;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 26px 70px}
+  header.top{border-bottom:1px solid var(--ui-strong);padding-bottom:20px;margin-bottom:24px}
+  .kicker{font-family:var(--ui-lat);letter-spacing:.26em;color:var(--ui-seal);font-size:11px;text-transform:uppercase}
+  h1{font-family:var(--ui-cn);font-weight:400;font-size:32px;letter-spacing:.1em;margin:10px 0 8px}
+  .sub{color:var(--ui-ink2);font-size:13px;max-width:820px;letter-spacing:.02em}
+  .sub b{font-weight:600}
+
+  /* ---- 风格选择 ---- */
+  .picks{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:20px}
+  @media(max-width:900px){.picks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .pick{
+    text-align:left;background:var(--ui-card);border:1px solid var(--ui-line);
+    padding:0;cursor:pointer;font-family:inherit;color:inherit;overflow:hidden;
+    transition:border-color 240ms cubic-bezier(.22,.7,.3,1),background-color 240ms cubic-bezier(.22,.7,.3,1);
+  }
+  .pick:hover{border-color:var(--ui-strong);background:#F6F3EA}
+  .pick .swatch{height:46px;display:flex;align-items:flex-end;padding:8px 10px;gap:5px}
+  .pick .swatch i{display:block;width:14px;height:14px;border:1px solid rgba(0,0,0,.12)}
+  .pick .meta{padding:10px 12px 12px}
+  .pick b{display:block;font-family:var(--ui-cn);font-size:15px;letter-spacing:.08em;font-weight:500}
+  .pick span{display:block;font-size:11px;color:var(--ui-ink3);letter-spacing:.03em;margin-top:3px;line-height:1.5}
+  .pick.on{border-color:var(--ui-seal);box-shadow:inset 0 -2px 0 var(--ui-seal)}
+  .pick.on b{color:var(--ui-seal)}
+
+  /* ---- 工具条 ---- */
+  .tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .tools .btn{
+    border:1px solid var(--ui-line);background:var(--ui-card);color:var(--ui-ink2);
+    padding:7px 14px;font:inherit;font-size:12px;cursor:pointer;letter-spacing:.05em;
+    transition:background-color 200ms,border-color 200ms,color 200ms;
+  }
+  .tools .btn:hover{background:#F6F3EA;border-color:var(--ui-strong);color:var(--ui-ink)}
+  .tools .btn.on{background:var(--ui-ink);color:#FBF9F3;border-color:var(--ui-ink)}
+  .tools .hint{margin-left:auto;font-size:11px;color:var(--ui-ink3);letter-spacing:.04em}
+
+  /* ============================================================
+     预览区：全部由 --p-* 驱动，切换 data-skin 即整块换装
+     ============================================================ */
+  .stage{display:flex;justify-content:center}
+  .preview{
+    width:min(760px,100%);background:var(--p-bg);color:var(--p-ink);
+    border:1px solid var(--p-line);overflow:hidden;
+    transition:width 320ms cubic-bezier(.22,.7,.3,1),background-color 240ms,border-color 240ms;
+  }
+  .preview[data-w="mobile"]{width:375px}
+
+  .pv-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:12px var(--p-pad);background:var(--p-leaf);
+    border-bottom:1px solid var(--p-line);border-top:2px solid var(--p-top);
+  }
+  .pv-brand b{display:block;font-family:var(--p-title);font-size:15px;letter-spacing:.08em;font-weight:var(--p-title-w)}
+  .pv-brand i{display:block;font-family:var(--p-lat);font-style:italic;font-size:10.5px;color:var(--p-accent);letter-spacing:.06em;margin-top:1px}
+  .pv-nav{display:flex;gap:12px;font-size:11.5px;color:var(--p-ink3)}
+  .pv-nav a{color:inherit;text-decoration:none;padding-bottom:3px;border-bottom:1px solid transparent}
+  .pv-nav a.on{color:var(--p-brand);border-bottom-color:var(--p-brand);font-weight:600}
+
+  .pv-main{padding:18px var(--p-pad) var(--p-pad)}
+  .pv-date{font-family:var(--p-lat);font-size:10.5px;letter-spacing:.14em;color:var(--p-ink3)}
+  .pv-title{
+    font-family:var(--p-title);font-weight:var(--p-title-w);
+    font-size:27px;letter-spacing:var(--p-track);line-height:var(--p-title-lh);
+    margin:8px 0 14px;
+  }
+  .pv-title em{font-style:var(--p-em-style);color:var(--p-seal)}
+
+  .pv-hero{
+    display:flex;gap:16px;align-items:center;
+    background:var(--p-surf);border:1px solid var(--p-line);
+    padding:14px var(--p-pad-sm);
+  }
+  .pv-ring{
+    flex:0 0 auto;width:74px;height:74px;border-radius:50%;
+    border:2px solid var(--p-line);border-top-color:var(--p-brand);border-right-color:var(--p-brand);
+    display:grid;place-content:center;text-align:center;
+  }
+  .pv-ring b{display:block;font-family:var(--p-lat);font-size:18px;line-height:1.1;font-weight:400}
+  .pv-ring span{display:block;font-size:9px;color:var(--p-ink3);letter-spacing:.1em}
+  .pv-hero-info{flex:1 1 auto;min-width:0}
+  .pv-hero-info h3{font-family:var(--p-title);font-size:15px;margin:0 0 3px;font-weight:var(--p-title-w);letter-spacing:.03em}
+  .pv-hero-info p{margin:0;font-size:11px;color:var(--p-ink3)}
+  .pv-mini{display:flex;gap:16px;border-top:1px solid var(--p-line);margin-top:9px;padding-top:7px}
+  .pv-mini div{font-size:9.5px;color:var(--p-ink3);letter-spacing:.04em}
+  .pv-mini b{display:block;font-family:var(--p-lat);font-size:15px;font-weight:400;color:var(--p-ink)}
+
+  .pv-cta{
+    display:block;width:100%;margin-top:11px;padding:12px;
+    background:var(--p-brand);color:var(--p-brand-ink);
+    border:1px solid var(--p-brand);border-radius:var(--p-btn-r);
+    font-family:var(--p-title);font-size:13px;letter-spacing:.08em;font-weight:600;
+    cursor:pointer;box-shadow:var(--p-btn-shadow);
+  }
+  .pv-plans{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+  .pv-plan{
+    background:var(--p-surf);border:1px solid var(--p-line);border-radius:var(--p-r);
+    padding:11px 13px;box-shadow:var(--p-shadow);
+  }
+  .pv-num{font-family:var(--p-lat);font-size:22px;line-height:1;font-weight:400}
+  .pv-lbl{font-size:10px;color:var(--p-ink3);margin-top:5px;letter-spacing:.08em}
+
+  .pv-sec{
+    margin:16px 0 9px;font-size:11px;color:var(--p-ink3);letter-spacing:.12em;
+    border-left:2px solid var(--p-brand);padding-left:9px;
+  }
+  .pv-chips{display:flex;gap:7px;flex-wrap:wrap}
+  .pv-chips span{
+    font-size:11px;padding:5px 11px;border:1px solid var(--p-line);
+    background:var(--p-surf);border-radius:var(--p-chip-r);color:var(--p-ink2);
+  }
+  .pv-chips span.hot{border-color:var(--p-brand);color:var(--p-brand);background:var(--p-soft)}
+
+  .pv-covers{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}
+  @media(max-width:520px){.pv-covers{grid-template-columns:repeat(2,1fr)}}
+  .pv-cover{
+    background:var(--p-surf2);border:1px solid var(--p-line2);border-left:3px solid var(--p-spine);
+    padding:12px 10px;min-height:78px;display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .pv-cover b{font-family:var(--p-title);font-size:12.5px;letter-spacing:.05em;font-weight:var(--p-title-w)}
+  .pv-cover span{font-family:var(--p-lat);font-size:9.5px;color:var(--p-ink3);letter-spacing:.06em}
+  .pv-cover.c6{border-left-color:var(--p-spine2)}
+  .pv-cover.ky{border-left-color:var(--p-spine3)}
+  .pv-cover.ie{border-left-color:var(--p-spine4)}
+
+  /* ============================================================
+     五套调色与字法
+     ============================================================ */
+  /* Ⅰ 册页 */
+  .preview[data-skin="folio"]{
+    --p-bg:#F4F1E9; --p-leaf:#FBF9F3; --p-surf:#FBF9F3; --p-surf2:#F7F4EB;
+    --p-ink:#1E3A30; --p-ink2:#3F534A; --p-ink3:#5C655E;
+    --p-line:#DCD6C8; --p-line2:#C4BDA9;
+    --p-brand:#1E3A30; --p-brand-ink:#FBF9F3; --p-soft:#EAE6DA;
+    --p-seal:#9C3B2E; --p-accent:#A8874E; --p-top:#A8874E;
+    --p-spine:#A8623C; --p-spine2:#4B6B8C; --p-spine3:#6E5A94; --p-spine4:#9A7C33;
+    --p-title:"Songti SC","STSong","SimSun",serif; --p-title-w:400;
+    --p-lat:"EB Garamond",Georgia,serif; --p-em-style:normal;
+    --p-r:0px; --p-btn-r:0px; --p-chip-r:0px;
+    --p-track:.1em; --p-title-lh:1.4; --p-lh:1.75;
+    --p-pad:22px; --p-pad-sm:16px;
+    --p-shadow:none; --p-btn-shadow:none;
+  }
+  /* Ⅱ 经典 */
+  .preview[data-skin="classic"]{
+    --p-bg:#F7F7F4; --p-leaf:#FFFFFF; --p-surf:#FFFFFF; --p-surf2:#F1F1EC;
+    --p-ink:#22272A; --p-ink2:#545B58; --p-ink3:#68706B;
+    --p-line:#E5E5DE; --p-line2:#D3D6D0;
+    --p-brand:#2E5240; --p-brand-ink:#FFFFFF; --p-soft:#EDF3EE;
+    --p-seal:#8A6600; --p-accent:#8A6600; --p-top:#E5E5DE;
+    --p-spine:#2E5240; --p-spine2:#3D6B53; --p-spine3:#4A7C60; --p-spine4:#6FA184;
+    --p-title:-apple-system,"PingFang SC","Microsoft YaHei UI",sans-serif; --p-title-w:600;
+    --p-lat:Georgia,serif; --p-em-style:normal;
+    --p-r:18px; --p-btn-r:18px; --p-chip-r:999px;
+    --p-track:.01em; --p-title-lh:1.3; --p-lh:1.65;
+    --p-pad:22px; --p-pad-sm:16px;
+    --p-shadow:0 1px 2px rgba(34,39,42,.05);
+    --p-btn-shadow:0 14px 30px -16px rgba(46,82,64,.75);
+  }
+  /* Ⅲ 素白 */
+  .preview[data-skin="bianco"]{
+    --p-bg:#FFFFFF; --p-leaf:#FFFFFF; --p-surf:#FFFFFF; --p-surf2:#F7F7F5;
+    --p-ink:#17171A; --p-ink2:#4A4A46; --p-ink3:#64645F;
+    --p-line:#E3E3DE; --p-line2:#CFCFC8;
+    --p-brand:#2A4A6B; --p-brand-ink:#FFFFFF; --p-soft:#EDF2F7;
+    --p-seal:#2A4A6B; --p-accent:#7C8FA6; --p-top:#FFFFFF;
+    --p-spine:#2A4A6B; --p-spine2:#4A6E8A; --p-spine3:#5A6B8C; --p-spine4:#8A7A5E;
+    --p-title:"Helvetica Neue","Segoe UI","PingFang SC",sans-serif; --p-title-w:600;
+    --p-lat:"Helvetica Neue",Arial,sans-serif; --p-em-style:normal;
+    --p-r:4px; --p-btn-r:4px; --p-chip-r:3px;
+    --p-track:-.02em; --p-title-lh:1.22; --p-lh:1.6;
+    --p-pad:26px; --p-pad-sm:20px;
+    --p-shadow:none; --p-btn-shadow:none;
+  }
+  /* Ⅳ 夜航 */
+  .preview[data-skin="nocturne"]{
+    --p-bg:#11151C; --p-leaf:#0C0F14; --p-surf:#161B23; --p-surf2:#1A2029;
+    --p-ink:#E9ECF2; --p-ink2:#BAC2CE; --p-ink3:#8E97A5;
+    --p-line:#262D38; --p-line2:#39414F;
+    --p-brand:#B99A5B; --p-brand-ink:#11151C; --p-soft:#241F17;
+    --p-seal:#B99A5B; --p-accent:#B99A5B; --p-top:#2E2A20;
+    --p-spine:#6E8FAE; --p-spine2:#7E93B0; --p-spine3:#8E86AE; --p-spine4:#B99A5B;
+    --p-title:"Cormorant Garamond","EB Garamond",Georgia,serif; --p-title-w:400;
+    --p-lat:"Cormorant Garamond",Georgia,serif; --p-em-style:italic;
+    --p-r:6px; --p-btn-r:5px; --p-chip-r:5px;
+    --p-track:.04em; --p-title-lh:1.35; --p-lh:1.72;
+    --p-pad:24px; --p-pad-sm:18px;
+    --p-shadow:none; --p-btn-shadow:none;
+  }
+  /* Ⅴ 暖木 */
+  .preview[data-skin="sepia"]{
+    --p-bg:#F3EADB; --p-leaf:#FBF6EC; --p-surf:#FBF6EC; --p-surf2:#F5ECE2;
+    --p-ink:#2E231A; --p-ink2:#5A4838; --p-ink3:#705C48;
+    --p-line:#DECFB6; --p-line2:#CBB89B;
+    --p-brand:#8A4B32; --p-brand-ink:#FBF6EC; --p-soft:#EFE1D2;
+    --p-seal:#8A4B32; --p-accent:#A8763E; --p-top:#DECFB6;
+    --p-spine:#8A4B32; --p-spine2:#7A5A3C; --p-spine3:#6E5240; --p-spine4:#A8763E;
+    --p-title:"Iowan Old Style",Georgia,"Songti SC",serif; --p-title-w:400;
+    --p-lat:"Iowan Old Style",Georgia,serif; --p-em-style:normal;
+    --p-r:7px; --p-btn-r:7px; --p-chip-r:7px;
+    --p-track:.06em; --p-title-lh:1.45; --p-lh:1.78;
+    --p-pad:24px; --p-pad-sm:18px;
+    --p-shadow:0 1px 0 rgba(58,44,34,.05); --p-btn-shadow:none;
+  }
+
+  /* ---- 对照表 ---- */
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+  th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--ui-line);vertical-align:top}
+  th{font-weight:600;color:var(--ui-ink2);background:var(--ui-card)}
+  td:first-child{font-family:var(--ui-cn);letter-spacing:.06em;white-space:nowrap}
+  .ledger{margin-top:30px;border-top:1px solid var(--ui-strong);padding-top:18px}
+  .ledger h2{font-family:var(--ui-cn);font-weight:400;font-size:20px;letter-spacing:.1em;margin:0 0 6px}
+  .ledger p{font-size:12px;color:var(--ui-ink3);margin:0 0 8px}
+  footer{margin-top:26px;border-top:1px solid var(--ui-line);padding-top:14px;font-size:11px;color:var(--ui-ink3);letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">Folio Skins · Five Bindings</div>
+    <h1>五种装帧，同一本书</h1>
+    <p class="sub">同一段首页内容，只换装、不改结构。下面每套都是<b>真实可切换的样式层</b>，
+      不是效果图：浅色 / 深色、桌面 / 移动都会在软件内各自适配。</p>
+  </header>
+
+  <div class="picks" id="picks"></div>
+
+  <div class="tools">
+    <button class="btn on" data-w="desktop">桌面 760</button>
+    <button class="btn" data-w="mobile">移动 375</button>
+    <span class="hint">点上方书装即时换装 · 切换不重建布局</span>
+  </div>
+
+  <div class="stage">
+    <div class="preview" id="preview" data-skin="folio" data-w="desktop">
+      <header class="pv-bar">
+        <div class="pv-brand"><b>背单词365</b><i id="pvSub">一日一页，词自成书</i></div>
+        <nav class="pv-nav"><a class="on">学习</a><a>词书</a><a>统计</a><a>我的</a></nav>
+      </header>
+      <main class="pv-main">
+        <div class="pv-date">2026 年 11 月 14 日 · 星期六</div>
+        <h1 class="pv-title">翻开今日<em>这一页</em></h1>
+
+        <div class="pv-hero">
+          <div class="pv-ring"><b>32%</b><span>今日</span></div>
+          <div class="pv-hero-info">
+            <h3>四级核心词汇</h3>
+            <p>今日已读 6 页 · 待重读 4 页</p>
+            <div class="pv-mini">
+              <div><b>12</b>连续翻阅</div>
+              <div><b>186</b>累计单词</div>
+              <div><b>91%</b>正确率</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="pv-cta">继续学习</button>
+
+        <div class="pv-plans">
+          <div class="pv-plan"><div class="pv-num">14</div><div class="pv-lbl">待学新词</div></div>
+          <div class="pv-plan"><div class="pv-num">26</div><div class="pv-lbl">待复习</div></div>
+        </div>
+
+        <div class="pv-sec">重点复习</div>
+        <div class="pv-chips">
+          <span class="hot">模糊 8</span><span>不认识 3</span><span>错词本 11</span><span>选义练习</span>
+        </div>
+
+        <div class="pv-covers">
+          <div class="pv-cover"><b>四级核心</b><span>100 词 · 42%</span></div>
+          <div class="pv-cover c6"><b>六级核心</b><span>100 词 · 18%</span></div>
+          <div class="pv-cover ky"><b>考研核心</b><span>100 词 · 7%</span></div>
+          <div class="pv-cover ie"><b>雅思核心</b><span>100 词 · 0%</span></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <section class="ledger">
+    <h2>五套的差异在哪</h2>
+    <p>差异不在装饰，而在四个可控维度：色相、字族、圆角、密度。四者同时变，才不会被认成同一套换了颜色。</p>
+    <table>
+      <thead><tr><th style="width:13%">书装</th><th style="width:20%">气质</th><th style="width:23%">纸 / 墨 / 强调</th><th style="width:22%">字族</th><th>圆角 · 密度</th></tr></thead>
+      <tbody>
+        <tr><td>册页</td><td>东方书卷，私人词书房</td><td>宣纸 #F4F1E9 / 墨松 #1E3A30 / 朱印 #9C3B2E</td><td>宋体标题 + Garamond 西文</td><td>全直角 · 中密度 · 零投影</td></tr>
+        <tr><td>经典</td><td>v2.0 原貌，清爽工具感</td><td>米白 #F7F7F4 / 近黑 #22272A / 品牌绿 #2E5240</td><td>系统无衬线</td><td>18px · 中密度 · 双层软影</td></tr>
+        <tr><td>素白</td><td>现代编辑，克制而清楚</td><td>纯白 #FFFFFF / 近黑 #17171A / 靛青 #2A4A6B</td><td>全无衬线（词头也不退回衬线）</td><td>2–4px · 大留白 · 零投影</td></tr>
+        <tr><td>夜航</td><td>灯下阅读，安静</td><td>靛黑 #11151C / 冷白 #E9ECF2 / 暗金 #B99A5B</td><td>衬线标题 + 无衬线正文</td><td>4–6px · 中密度 · 单层深影</td></tr>
+        <tr><td>暖木</td><td>旧书房，纸有年岁</td><td>米棕 #F3EADB / 深褐 #2E231A / 赭石 #8A4B32</td><td>全衬线，宽行高 1.78</td><td>7px · 中密度 · 一层纸感</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    界面语汇示意页，非运行截图 · 真实效果以 <b>背单词365.exe</b> 为准 ·
+    软件内入口：我的 → 外观 → 书装 · 五套均为独立样式层，切换即时生效
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var SKINS = [
+    { key: 'folio',    name: '册页', sub: '一日一页，词自成书',   swatch: ['#F4F1E9', '#1E3A30', '#9C3B2E', '#A8874E'] },
+    { key: 'classic',  name: '经典', sub: '365天，每天进步一点',   swatch: ['#F7F7F4', '#2E5240', '#8A6600', '#D3D6D0'] },
+    { key: 'bianco',   name: '素白', sub: '清楚，克制，记得住',   swatch: ['#FFFFFF', '#2A4A6B', '#7C8FA6', '#E3E3DE'] },
+    { key: 'nocturne', name: '夜航', sub: '灯下，读一页',         swatch: ['#11151C', '#B99A5B', '#E9ECF2', '#39414F'] },
+    { key: 'sepia',    name: '暖木', sub: '旧纸上的新词',         swatch: ['#F3EADB', '#8A4B32', '#A8763E', '#DECFB6'] }
+  ];
+
+  var picks = document.getElementById('picks');
+  var preview = document.getElementById('preview');
+  var pvSub = document.getElementById('pvSub');
+
+  picks.innerHTML = SKINS.map(function (s, i) {
+    var chips = s.swatch.map(function (c) {
+      return '<i style="background:' + c + '"></i>';
+    }).join('');
+    return '<button class="pick' + (i === 0 ? ' on' : '') + '" data-key="' + s.key + '">'
+      + '<div class="swatch" style="background:' + s.swatch[0] + '">' + chips + '</div>'
+      + '<div class="meta"><b>' + s.name + '</b><span>' + s.sub + '</span></div>'
+      + '</button>';
+  }).join('');
+
+  function pick(key) {
+    var conf = null;
+    for (var i = 0; i < SKINS.length; i++) if (SKINS[i].key === key) conf = SKINS[i];
+    if (!conf) return;
+    preview.setAttribute('data-skin', key);
+    pvSub.textContent = conf.sub;
+    var btns = picks.querySelectorAll('.pick');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].classList.toggle('on', btns[j].getAttribute('data-key') === key);
+    }
+  }
+
+  picks.addEventListener('click', function (e) {
+    var el = e.target;
+    while (el && el !== picks && !(el.getAttribute && el.getAttribute('data-key'))) el = el.parentNode;
+    if (el && el !== picks) pick(el.getAttribute('data-key'));
+  });
+
+  var tools = document.querySelectorAll('.tools .btn');
+  for (var i = 0; i < tools.length; i++) {
+    tools[i].addEventListener('click', function () {
+      var w = this.getAttribute('data-w');
+      preview.setAttribute('data-w', w);
+      for (var k = 0; k < tools.length; k++) tools[k].classList.toggle('on', tools[k] === this);
+    });
+  }
+})();
+</script>
+</body>
+</html>

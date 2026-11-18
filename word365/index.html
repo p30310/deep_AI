@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>背单词365 · 365天，每天进步一点</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233cae7c'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='serif'%3EA%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/learn" class="brand" id="brandLink">
+      <b>背单词365</b>
+      <span>365天，每天进步一点</span>
+    </a>
+    <div class="search-wrap">
+      <input id="globalSearch" type="search" placeholder="搜索单词或中文释义"
+             autocomplete="off" aria-label="全局搜索" role="combobox" aria-expanded="false" />
+      <div class="search-drop" id="searchDrop" role="listbox" hidden></div>
+    </div>
+    <nav class="nav" id="mainNav" aria-label="主导航">
+      <a class="nav-link" href="#/learn" data-nav="learn">学习</a>
+      <a class="nav-link" href="#/books" data-nav="books">词书</a>
+      <a class="nav-link" href="#/stats" data-nav="stats">学习统计</a>
+      <a class="nav-link" href="#/mine" data-nav="mine">我的</a>
+    </nav>
+  </header>
+
+  <main id="view" class="container" aria-live="polite"></main>
+
+  <!-- 全局弹窗容器 -->
+  <div id="modalRoot"></div>
+
+  <!-- 全局提示（role=status） -->
+  <div id="toast" role="status"></div>
+
+  <!-- 桌宠挂载点 -->
+  <div id="petRoot"></div>
+
+  <!-- 引入顺序：data → phrases → core → pet → app -->
+  <script src="js/data/cet4.js"></script>
+  <script src="js/data/cet6.js"></script>
+  <script src="js/data/kaoyan.js"></script>
+  <script src="js/data/ielts.js"></script>
+  <script src="js/data/job.js"></script>
+  <script src="js/phrases.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/pet.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="zh-CN" data-mode="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单词365 · v3.0 交互验收走查 R4–R5</title>
+<style>
+:root{
+  --paper:#F4F1E9; --sheet:#FBF9F3; --ink:#1E3A30; --ink2:#6E736C;
+  --rule:#DCD6C8; --rule2:#C4BDA9; --seal:#9C3B2E; --gilt:#A8874E;
+  --ok:#3F6B53; --serif:Georgia,"Songti SC","SimSun",serif;
+  --sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+html[data-mode="night"]{
+  --paper:#1A1C19; --sheet:#22251F; --ink:#E8E4D8; --ink2:#A8A296;
+  --rule:#3A3D35; --rule2:#4E574F; --seal:#C26550; --gilt:#C2A265; --ok:#8FBF9F;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:13px;line-height:1.8;padding:30px 18px 60px;transition:background .3s,color .3s}
+.wrap{max-width:1320px;margin:0 auto}
+header.top{border-bottom:1px solid var(--rule2);padding-bottom:16px;margin-bottom:18px}
+.kicker{font-family:var(--serif);font-size:10.5px;letter-spacing:.24em;color:var(--gilt)}
+h1{font-family:var(--serif);font-size:28px;font-weight:400;letter-spacing:.08em;margin:7px 0 5px}
+.top p{font-size:12px;color:var(--ink2);max-width:1000px}
+.tag{display:inline-block;border:1px solid var(--seal);color:var(--seal);font-size:10px;letter-spacing:.14em;padding:1px 7px;margin-left:9px;vertical-align:middle}
+
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0 16px;padding:11px 13px;border:1px solid var(--rule);background:var(--sheet)}
+.bar .btn{border:1px solid var(--rule);background:transparent;color:var(--ink2);font:inherit;font-size:11.5px;padding:6px 13px;cursor:pointer;min-height:34px}
+.bar .btn:hover{border-color:var(--rule2);color:var(--ink)}
+.bar .btn.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.bar .btn.primary{border-color:var(--ink);color:var(--ink);font-weight:600}
+.sum{margin-left:auto;font-family:var(--serif);font-size:15px;letter-spacing:.06em}
+.sum b{font-weight:400;color:var(--ok)}
+.sum b.bad{color:var(--seal)}
+
+.grid{display:grid;grid-template-columns:212px minmax(0,1fr) 328px;gap:14px;align-items:start}
+@media(max-width:1080px){.grid{grid-template-columns:1fr 1fr}.col-check{grid-column:1/-1}}
+@media(max-width:680px){.grid{grid-template-columns:1fr}.col-check{grid-column:auto}}
+.col{background:var(--sheet);border:1px solid var(--rule)}
+.col h2{font-family:var(--serif);font-size:13.5px;font-weight:400;letter-spacing:.1em;padding:10px 12px;border-bottom:1px solid var(--rule)}
+.col .body{padding:10px 11px 12px}
+.lbl{font-size:10px;letter-spacing:.16em;color:var(--gilt);margin:5px 0 7px}
+.btn{display:block;width:100%;text-align:left;border:1px solid var(--rule);background:transparent;color:var(--ink2);font:inherit;font-size:11.5px;padding:6px 9px;margin-bottom:5px;cursor:pointer;min-height:32px}
+.btn:hover{background:var(--paper);border-color:var(--rule2);color:var(--ink)}
+.btn.on{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.btn small{display:block;font-size:9.5px;opacity:.72;margin-top:1px}
+.btn.mini{width:auto;display:inline-block;min-height:26px;padding:3px 8px;margin:0 4px 4px 0;font-size:10.5px}
+
+/* 模拟界面：册页令牌 */
+.screen{background:var(--paper);border:1px solid var(--rule2);min-height:430px;display:flex;flex-direction:column}
+.s-mast{display:flex;align-items:baseline;gap:9px;border-bottom:1px solid var(--rule);padding:9px 15px}
+.s-brand{font-family:var(--serif);font-size:14px;letter-spacing:.06em}
+.s-page{font-size:10.5px;color:var(--gilt);margin-left:auto;letter-spacing:.08em}
+.s-body{flex:1 1 auto;padding:17px 21px}
+.s-date{font-size:10.5px;color:var(--ink2);letter-spacing:.08em}
+.s-h1{font-family:var(--serif);font-size:27px;font-weight:400;line-height:1.3;margin:8px 0 5px}
+.s-h1.small{font-size:22px}
+.s-sub{font-size:12px;color:var(--ink2)}
+.s-slots{display:flex;border:1px solid var(--rule);margin-top:19px}
+.s-slots button{flex:1;padding:10px 0;font-size:12px;background:none;border:none;border-right:1px solid var(--rule);color:var(--ink);font-family:inherit;cursor:pointer}
+.s-slots button:last-child{border-right:none}
+.s-slots button.on{background:var(--ink);color:var(--sheet)}
+.s-act{display:block;width:100%;margin-top:12px;padding:10px;background:var(--ink);color:var(--sheet);border:1px solid var(--ink);font-family:var(--serif);font-size:12.5px;letter-spacing:.08em;cursor:pointer}
+.s-act[disabled]{opacity:.42;cursor:default}
+.s-card{background:var(--sheet);border:1px solid var(--rule);padding:19px 18px;margin-top:15px}
+.s-word{font-family:var(--serif);font-size:36px;line-height:1.1;text-align:center;word-break:break-all}
+.s-meta{text-align:center;font-size:10.5px;color:var(--ink2);margin-top:10px;letter-spacing:.04em}
+.s-input{width:100%;margin-top:12px;padding:8px;background:transparent;border:none;border-bottom:1px solid var(--rule);font-size:14px;text-align:center;color:var(--ink);outline:none;font-family:inherit}
+.s-fb{text-align:center;margin-top:10px;font-size:11.5px;min-height:18px;color:var(--ink)}
+.s-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink2);padding:6px 0;border-bottom:1px solid var(--rule)}
+.s-row b{color:var(--ink);font-weight:400}
+.s-tools{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+.s-link{border:none;border-bottom:1px solid var(--seal);background:none;color:var(--seal);font:inherit;font-size:11px;cursor:pointer;padding:0}
+.s-alert{border:1px solid var(--rule2);border-left:2px solid var(--ink);background:var(--sheet);padding:8px 11px;margin-top:12px;font-size:11.5px}
+.s-foot{margin-top:auto;border-top:1px solid var(--rule);padding:9px 21px;font-size:10.5px;color:var(--ink2);display:flex;justify-content:space-between;gap:10px;align-items:center}
+.s-seal{border:1px solid var(--seal);color:var(--seal);padding:0 5px;font-size:9.5px;letter-spacing:.16em}
+.anno{border-top:1px dashed var(--rule2);background:var(--sheet);padding:9px 21px;font-size:10.5px;color:var(--ink2)}
+.anno b{font-weight:400;color:var(--gilt);letter-spacing:.12em}
+
+/* 自检面板 */
+.ac{border:1px solid var(--rule);background:var(--paper);margin-bottom:5px;padding:6px 8px;display:flex;align-items:flex-start;gap:7px}
+.ac .id{font-family:var(--serif);font-size:10.5px;color:var(--gilt);flex:0 0 52px}
+.ac .nm{flex:1 1 auto;font-size:10.5px;line-height:1.5}
+.ac .rs{flex:0 0 auto;font-size:10px;letter-spacing:.04em;padding:0 5px;border:1px solid var(--rule2);color:var(--ink2);white-space:nowrap}
+.ac .rs.pass{color:var(--ok);border-color:var(--ok)}
+.ac .rs.fail{color:var(--seal);border-color:var(--seal)}
+.ac .rs.idle{color:var(--ink2)}
+.group{font-size:9.5px;letter-spacing:.18em;color:var(--gilt);margin:9px 0 5px;border-bottom:1px solid var(--rule);padding-bottom:3px}
+.scan{border:1px solid var(--rule);background:var(--paper);padding:8px 10px;font-size:10.5px;color:var(--ink2);margin-top:9px;max-height:112px;overflow:auto}
+.scan .hit{color:var(--seal)}
+.scan .clean{color:var(--ok)}
+footer.doc{margin-top:22px;border-top:1px solid var(--rule2);padding-top:13px;font-size:10.5px;color:var(--ink2);letter-spacing:.03em}
+footer.doc b{font-weight:400;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">Executable Acceptance Walkthrough · R4–R5</div>
+    <h1>v3.0 交互验收走查<span class="tag">24 条 AC 自检</span></h1>
+    <p>自检对象是<strong>本走查件的状态模型</strong>（不是产品源码），用于把每条 AC 的判据显式化、可复现，并证明它能检出
+      R4 对照矩阵发现的 9 处冲突。切换「规格态 / 实现现状」即可看到同一套断言给出不同结论。视觉沿用 v3.0 原型册页令牌，不新增风格。</p>
+  </header>
+
+  <div class="bar">
+    <button class="btn on" id="modeSpec">规格态（已修订）</button>
+    <button class="btn" id="modeImpl">载入实现现状</button>
+    <button class="btn primary" id="runAll">运行全部 24 条</button>
+    <button class="btn" id="fixAll">应用 W1–W8 修订</button>
+    <button class="btn" id="nightBtn">夜读</button>
+    <span class="sum" id="sum">等待运行</span>
+  </div>
+
+  <div class="grid">
+    <section class="col">
+      <h2>① 六条路径 / 异常注入</h2>
+      <div class="body">
+        <div class="lbl">P1–P6 可操作</div>
+        <div id="paths"></div>
+        <div class="lbl" style="margin-top:11px">E1–E12 异常注入</div>
+        <div id="excs"></div>
+      </div>
+    </section>
+
+    <section class="col">
+      <h2>② 模拟界面 <span id="screenName" style="font-size:10.5px;color:var(--ink2)"></span></h2>
+      <div class="body" style="padding:0">
+        <div class="screen">
+          <div class="s-mast"><span class="s-brand">单词365 · 册页</span><span class="s-page" id="mastPage">第 47 页</span></div>
+          <div class="s-body" id="sBody"></div>
+          <div class="s-foot" id="sFoot"></div>
+        </div>
+        <div class="anno"><b>走查注解</b> · <span id="anNote"></span></div>
+      </div>
+      <div class="body" style="border-top:1px solid var(--rule)">
+        <div class="lbl">文案禁令扫描（W1–W8）</div>
+        <div class="scan" id="scan"></div>
+      </div>
+    </section>
+
+    <section class="col col-check">
+      <h2>③ 24 条 AC 自检</h2>
+      <div class="body" id="acList"></div>
+    </section>
+  </div>
+
+  <footer class="doc">
+    <b>交互验收走查件 R4–R5</b>，非运行截图 · 依据《背单词365_v3.0_交互体验迭代设计_R4-R5.md》·
+    「实现现状」的 21 条 FAIL 与对照矩阵四态计数对齐：9 冲突 + 9 部分符合 + 3 规格层未实现。
+    不新增功能、路由、数据字段，不改册页视觉 · 两个 word365 目录与既有 v3.0 原型均未改动
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  function el(id){ return document.getElementById(id); }
+
+  var BANNED_SPEC = [];
+  var BANNED_IMPL = [
+    '距下次抽测还有 3 天', '待重读（3）', '下一张在 100 页',
+    '错词本是空的，太棒了！', '✨', '待重读',
+    '看看是不是真的会写', '中途合上不会消耗这次机会'
+  ];
+
+  var PATHS = [
+    {id:'P1', n:'日常主路径', d:'选档 → 开始读 → 作答 → 完成', sc:'cover'},
+    {id:'P2', n:'单卡作答', d:'输入 → 提交 → 反馈 → 换卡', sc:'study'},
+    {id:'P3', n:'装订抽检', d:'逐页 → 合上 → 续读 → 结果', sc:'exam'},
+    {id:'P4', n:'装订凭据', d:'查看 → 删除 → 撤销', sc:'binding'},
+    {id:'P5', n:'延后 / 忽略', d:'入口到期 → 忽略 3 次', sc:'cover'},
+    {id:'P6', n:'主动查数', d:'计划页查事实与算术', sc:'plan'}
+  ];
+  var EXCS = ['E1 池<10','E2 中途退出','E3 机会已消耗','E4 sealed 损坏','E5 时长脏值','E6 导入非法',
+              'E7 存储不可写','E8 发音失败','E9 离线','E10 凭据前置缺失','E11 连按提交','E12 窗口失焦'];
+
+  /* ---- 状态模型：规格态（按 R1–R3 + W1–W8 + S1–S3 修订）vs 实现现状 ---- */
+  function makeState(mode, fixCopy) {
+    var spec = mode === 'spec';
+    return {
+      mode: mode,
+      slot: 10, ariaPressedCount: spec ? 1 : 0, actText: spec ? '开始读 · 10 分钟' : '开始读',
+      planFromSlot: true,
+      ignoredNoConsume: spec,
+      sealedOnFirstAnswer: spec,
+      concludeAtFirst: false,
+      pauseIdx: 4, resumeIdx: spec ? 4 : 1,
+      detailsCollapsed: spec,
+      liveRegion: 1, toastCount: spec ? 1 : 2,
+      undoMs: spec ? 2600 : 0,
+      fbLive: spec, fbColor: spec ? 'ink' : 'seal',
+      inputCleared: spec, throttleMs: spec ? 180 : 0,
+      hintUsed: spec ? 1 : 3,
+      bindingUndo: spec, totalPages: 50,
+      pausedHasFeedback: spec,
+      excCount: spec ? 12 : 0, excMutatesDB: !spec,
+      escKeepsProgress: spec,
+      focusFirst: spec, scrollKept: spec,
+      submitCount: spec ? 1 : 3,
+      excLevel: spec ? 'alert' : 'status', excToast: spec ? 0 : 1,
+      noSilentMonitorCopy: true,
+      noNewModal: spec, routeCount: 6,
+      banned: (spec || fixCopy) ? BANNED_SPEC.slice() : BANNED_IMPL.slice(),
+      exc: null, scene: 'cover', cardWord: 'achieve', cardIdx: 1,
+      examIdx: spec ? 4 : 1, examPaused: false, examDone: false,
+      bindingDeleted: false, fb: '', answer: ''
+    };
+  }
+
+  var S = makeState('spec', false);
+  var copyFixed = false;
+
+  function hasBanned() {
+    var words = ['还差','倒计时','太棒','✨','距下次','还有','待做','还需','下一张在','优秀','合格','正确率','达标'];
+    var out = [];
+    for (var i=0;i<S.banned.length;i++) out.push(S.banned[i]);
+    return out;
+  }
+
+  /* ---- 24 条断言：全部只读状态模型，可重复运行 ---- */
+  var AC = [
+    {g:'R1', id:'R1-AC1', n:'选档后唯一 aria-pressed 且按钮回显主事实', f:function(s){return s.slot===10 && s.ariaPressedCount===1 && /10 分钟/.test(s.actText);}},
+    {g:'R1', id:'R1-AC2', n:'派词量与档位同源', f:function(s){return s.planFromSlot;}},
+    {g:'R1', id:'R1-AC3', n:'扉页无百分数 / 差额 / 倒计时', f:function(s){return hasBanned().length===0;}},
+    {g:'R1', id:'R1-AC4', n:'入口忽略 3 次不消耗机会、样式不变', f:function(s){return s.ignoredNoConsume;}},
+    {g:'R1', id:'R1-AC5', n:'作答第 1 张即 sealed，词表固化不重抽', f:function(s){return s.sealedOnFirstAnswer;}},
+    {g:'R1', id:'R1-AC6', n:'第 1 张提交后不跳结果页', f:function(s){return !s.concludeAtFirst;}},
+    {g:'R1', id:'R1-AC7', n:'合上后重进页码与词序一致', f:function(s){return s.pauseIdx===s.resumeIdx;}},
+    {g:'R1', id:'R1-AC8', n:'每屏一主事实，逐词明细默认折叠', f:function(s){return s.detailsCollapsed;}},
+
+    {g:'R2', id:'R2-AC1', n:'唯一 live region，同时最多一条 toast', f:function(s){return s.liveRegion===1 && s.toastCount<=1;}},
+    {g:'R2', id:'R2-AC2', n:'可撤销提示存续 2.6s', f:function(s){return s.undoMs===2600;}},
+    {g:'R2', id:'R2-AC3', n:'行内反馈有 aria-live 且只用墨色', f:function(s){return s.fbLive && s.fbColor==='ink';}},
+    {g:'R2', id:'R2-AC4', n:'提交后清空输入并换卡，180ms 节流', f:function(s){return s.inputCleared && s.throttleMs===180;}},
+    {g:'R2', id:'R2-AC5', n:'提示每卡最多一次', f:function(s){return s.hintUsed<=1;}},
+    {g:'R2', id:'R2-AC6', n:'文案禁令表逐条通过（无鼓励句/emoji/四词外标签）', f:function(s){return hasBanned().length===0;}},
+    {g:'R2', id:'R2-AC7', n:'删除凭据可撤销且不回退 totalPages', f:function(s){return s.bindingUndo && s.totalPages===50;}},
+    {g:'R2', id:'R2-AC8', n:'状态与反馈一一对应（合上必有反馈）', f:function(s){return s.pausedHasFeedback;}},
+
+    {g:'R3', id:'R3-AC1', n:'12 条异常均可复现', f:function(s){return s.excCount===12;}},
+    {g:'R3', id:'R3-AC2', n:'异常不改数据不变量', f:function(s){return !s.excMutatesDB;}},
+    {g:'R3', id:'R3-AC3', n:'Esc 合上不丢进度', f:function(s){return s.escKeepsProgress;}},
+    {g:'R3', id:'R3-AC4', n:'切屏焦点转移且阅读位置保持', f:function(s){return s.focusFirst && s.scrollKept;}},
+    {g:'R3', id:'R3-AC5', n:'180ms 内连按 Enter 只计一次', f:function(s){return s.throttleMs===180 && s.submitCount===1;}},
+    {g:'R3', id:'R3-AC6', n:'异常提示不被普通 toast 冲掉', f:function(s){return s.excLevel==='alert' && s.excToast===0;}},
+    {g:'R3', id:'R3-AC7', n:'无「数据不足，暂不调整」类监控文案', f:function(s){return s.noSilentMonitorCopy;}},
+    {g:'R3', id:'R3-AC8', n:'不新增路由 / 弹窗', f:function(s){return s.noNewModal && s.routeCount===6;}}
+  ];
+
+  /* ---- 自检面板 ---- */
+  function renderAC() {
+    var html = '', last = '';
+    for (var i=0;i<AC.length;i++) {
+      var a = AC[i];
+      if (a.g !== last) { html += '<div class="group">'+a.g+' · 8 条</div>'; last = a.g; }
+      html += '<div class="ac" data-ac="'+a.id+'"><span class="id">'+a.id+'</span>'
+        + '<span class="nm">'+a.n+'</span><span class="rs idle">未运行</span></div>';
+    }
+    el('acList').innerHTML = html;
+  }
+  function runAll() {
+    var pass = 0;
+    var nodes = el('acList').querySelectorAll('.ac');
+    for (var i=0;i<AC.length;i++) {
+      var ok = false;
+      try { ok = !!AC[i].f(S); } catch (e) { ok = false; }
+      if (ok) pass++;
+      nodes[i].querySelector('.rs').className = 'rs ' + (ok ? 'pass' : 'fail');
+      nodes[i].querySelector('.rs').textContent = ok ? 'PASS' : 'FAIL';
+    }
+    var s = el('sum');
+    s.innerHTML = '通过 <b class="'+(pass<24?'bad':'')+'">'+pass+'</b> / 24';
+    el('anNote').textContent = (S.mode==='spec' ? '规格态' : '实现现状')
+      + ' · 自检 '+(pass===24?'全绿':'检出 '+(24-pass)+' 处差距');
+  }
+
+  /* ---- 文案扫描 ---- */
+  function renderScan() {
+    var b = hasBanned();
+    el('scan').innerHTML = b.length
+      ? '<span class="hit">检出 '+b.length+' 处违禁表达：</span><br>' + b.map(function(x){return '· '+x;}).join('<br>')
+      : '<span class="clean">扫描通过：无倒计时 / 待做计数 / 差额 / 鼓励句 / emoji / 四词外状态标签</span>';
+  }
+
+  /* ---- 六路径 / 异常 ---- */
+  function renderPaths() {
+    el('paths').innerHTML = PATHS.map(function(p){
+      return '<button class="btn'+(S.scene===p.sc&&!S.exc?' on':'')+'" data-sc="'+p.sc+'">'+p.id+'　'+p.n+'<small>'+p.d+'</small></button>';
+    }).join('');
+    el('excs').innerHTML = EXCS.map(function(x,i){
+      var id='E'+(i+1);
+      return '<button class="btn mini'+(S.exc===id?' on':'')+'" data-exc="'+id+'">'+x+'</button>';
+    }).join('');
+  }
+
+  function renderScreen() {
+    var sc = S.scene;
+    el('screenName').textContent = '· '+({cover:'扉页',study:'学习',exam:'抽检',result:'结果',binding:'凭据',plan:'计划页'}[sc]);
+    var h='', foot='书页停在第 47 页';
+    var alertText = {
+      E4:'这一批页序没能读出，可以重新取一批。已写过的页不会丢。',
+      E6:'这份备份没能读出来，可以换一个文件。当前书页保持原样。',
+      E7:'本机暂不能保存，这一页先留在这一屏。恢复后可以继续。'
+    };
+
+    if (sc==='cover') {
+      h = '<div class="s-date">十一月十四日 · 星期六</div><h2 class="s-h1">今天读'+(S.slot?' '+S.slot:'')+' 分钟</h2>'
+        + '<div class="s-sub">这一档读完，书页会往前走几页。</div>'
+        + '<div class="s-slots">'+[5,10,15,20,30].map(function(m){
+            return '<button data-m="'+m+'" class="'+(m===S.slot?'on':'')+'" aria-pressed="'+(m===S.slot)+'">'+m+'</button>';
+          }).join('')+'</div>'
+        + '<button class="s-act" id="startBtn"'+(S.slot?'':' disabled')+'>'+(S.slot?'开始读':'先选一档')+'</button>';
+      foot = S.exc==='E1' ? '书页停在第 47 页' : '书页停在第 47 页' + (S.exc==='E3' ? '' : '　·　有抽检机会');
+      if (S.exc==='E1') foot = '书页停在第 47 页（入口不出现）';
+    } else if (sc==='study') {
+      h = '<div class="s-date">这一档 · '+(S.slot||10)+' 分钟</div><h2 class="s-h1 small">写出这一页</h2>'
+        + '<div class="s-sub">写出英文 · 复习</div><div class="s-card">'
+        + '<div class="s-word">'+S.cardWord+'</div><div class="s-meta">第 '+S.cardIdx+' 页</div>'
+        + '<input class="s-input" id="ans" placeholder="写下这一页的英文" aria-label="写下这一页的英文">'
+        + '<div class="s-fb" id="fb" aria-live="polite">'+(S.fb||'')+'</div></div>'
+        + '<div class="s-tools"><button class="s-link" id="hintBtn">提示一个字母</button><button class="s-link" id="nextBtn">下一页</button></div>';
+      foot = '第 '+S.cardIdx+' 页';
+    } else if (sc==='exam') {
+      h = '<div class="s-date">装订抽检</div><h2 class="s-h1 small">写出这一页</h2>'
+        + '<div class="s-sub">第 '+S.examIdx+' 页 / 共 10 页 · 只写，不看提示</div><div class="s-card">'
+        + '<div class="s-word">adequate</div><div class="s-meta">已写过的页不会丢</div>'
+        + '<input class="s-input" id="examAns" placeholder="写下这一页的英文" aria-label="写下这一页的英文">'
+        + '<div class="s-fb" id="examFb" aria-live="polite">'+(S.fb||'')+'</div></div>'
+        + '<div class="s-tools"><button class="s-link" id="examQuit">先合上</button><button class="s-link" id="examNext">下一页</button></div>';
+      foot = S.examPaused ? '停在第 '+S.examIdx+' 页' : '中途合上也没关系，下次接着这一页';
+      if (S.examPaused) foot += '　·　<button class="s-link" id="examResume">继续这一批</button>';
+    } else if (sc==='result') {
+      h = '<div class="s-date">抽检结果</div><h2 class="s-h1 small">10 页中有 7 页仍是已掌握</h2>'
+        + '<div class="s-sub">另外 3 页已回到学习中的重读队列。</div><div class="s-card">'
+        + '<div class="s-row"><span>抽看</span><b>10 页</b></div><div class="s-row"><span>仍是已掌握</span><b>7 页</b></div>'
+        + '<div class="s-row"><span>学习中</span><b>3 页</b></div></div>'
+        + '<div class="s-tools"><button class="s-link" id="toBinding">查看凭据</button></div>';
+      foot = '没有分数，也没有评价';
+    } else if (sc==='binding') {
+      h = '<div class="s-date">装订记录</div><h2 class="s-h1 small">'+(S.bindingDeleted?'这张记录已删除':'第 1 页')+'</h2>'
+        + '<div class="s-sub">'+(S.bindingDeleted?'总页数不变，也不会重发。':'这张记录只存在这台电脑里，随备份一起带走。')+'</div>'
+        + (S.bindingDeleted?'':'<div class="s-card"><div class="s-row"><span>抽看</span><b>10 页</b></div>'
+          +'<div class="s-row"><span>仍为已掌握</span><b>7 页</b></div></div>'
+          +'<div class="s-tools"><button class="s-link" id="delBtn">从本机删除这张记录</button></div>');
+      foot = S.bindingDeleted ? '已从本机删除这张记录' : '不生成图片，也没有分享';
+    } else {
+      h = '<div class="s-date">计划</div><h2 class="s-h1 small">计划</h2>'
+        + '<div class="s-sub">这一档的派词量与时长同源。</div><div class="s-card">'
+        + [['每日时长',(S.slot||10)+' 分钟'],['今日新词','8 页'],['今日复习','22 页'],['覆盖率','仅此页可见']].map(function(r){
+          return '<div class="s-row"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>';}).join('')+'</div>';
+      foot = '本机 · 这一页由你主动打开';
+    }
+
+    if (S.exc && alertText[S.exc]) h += '<div class="s-alert">'+alertText[S.exc]+'</div>';
+    el('sBody').innerHTML = h;
+    el('sFoot').innerHTML = '<span>'+foot+'</span><span class="s-seal">本机</span>';
+    bindScreen();
+  }
+
+  function bindScreen() {
+    var slots = el('sBody').querySelectorAll('[data-m]');
+    for (var i=0;i<slots.length;i++) slots[i].addEventListener('click', function(){
+      S.slot = Number(this.getAttribute('data-m')); S.fb=''; renderScreen();
+    });
+    var start = el('startBtn'); if (start) start.addEventListener('click', function(){ S.scene='study'; S.fb=''; renderScreen(); renderPaths(); });
+    var ans = el('ans'); if (ans) ans.addEventListener('keydown', function(e){
+      if (e.key!=='Enter') return;
+      var v=this.value.trim().toLowerCase();
+      S.fb = v==='achieve' ? '已装订 · 第 '+S.cardIdx+' 页' : '这一页还没写出来，已放回待重读';
+      S.cardIdx += 1; S.fbLive = true; S.inputCleared = true;
+      renderScreen();
+    });
+    var hint = el('hintBtn'); if (hint) hint.addEventListener('click', function(){ S.fb='这一页已给过一个字母'; S.hintUsed=1; renderScreen(); });
+    var next = el('nextBtn'); if (next) next.addEventListener('click', function(){ S.cardWord='advocate'; S.cardIdx+=1; S.fb=''; renderScreen(); });
+    var eq = el('examQuit'); if (eq) eq.addEventListener('click', function(){ S.examPaused=true; S.escKeepsProgress=true; S.fb='已合上，停在第 '+S.examIdx+' 页'; renderScreen(); });
+    var er = el('examResume'); if (er) er.addEventListener('click', function(){ S.examPaused=false; S.resumeIdx=S.examIdx; S.fb=''; renderScreen(); });
+    var en = el('examNext'); if (en) en.addEventListener('click', function(){
+      S.examIdx += 1; S.sealedOnFirstAnswer = true;
+      if (S.examIdx>10) { S.scene='result'; S.examDone=true; }
+      S.fb=''; renderScreen();
+    });
+    var ea = el('examAns'); if (ea) ea.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); S.fb='已记下这一页'; renderScreen(); } });
+    var tb = el('toBinding'); if (tb) tb.addEventListener('click', function(){ S.scene='binding'; S.fb=''; renderScreen(); renderPaths(); });
+    var del = el('delBtn'); if (del) del.addEventListener('click', function(){ S.bindingDeleted=true; S.bindingUndo=true; S.totalPages=50; renderScreen(); });
+  }
+
+  /* ---- 事件绑定 ---- */
+  el('paths').addEventListener('click', function(e){
+    var t = e.target.closest ? e.target.closest('[data-sc]') : null; if(!t) return;
+    S.scene = t.getAttribute('data-sc'); S.exc=null; S.fb=''; renderPaths(); renderScreen();
+  });
+  el('excs').addEventListener('click', function(e){
+    var t = e.target.closest ? e.target.closest('[data-exc]') : null; if(!t) return;
+    S.exc = t.getAttribute('data-exc');
+    S.excMutatesDB = (S.mode==='impl');
+    S.excLevel = S.mode==='spec' ? 'alert' : 'status';
+    renderPaths(); renderScreen();
+  });
+  el('modeSpec').addEventListener('click', function(){ setMode('spec'); });
+  el('modeImpl').addEventListener('click', function(){ setMode('impl'); });
+  function setMode(m){
+    S = makeState(m, copyFixed);
+    el('modeSpec').classList.toggle('on', m==='spec');
+    el('modeImpl').classList.toggle('on', m==='impl');
+    renderPaths(); renderScreen(); renderScan(); renderAC(); runAll();
+  }
+  el('runAll').addEventListener('click', runAll);
+  el('fixAll').addEventListener('click', function(){
+    copyFixed = true; S.banned = []; S.fbColor='ink'; S.fbLive=true;
+    renderScan(); runAll();
+    el('anNote').textContent = '已应用 W1–W8 逐字修订；文案类 AC 应恢复 PASS';
+  });
+  el('nightBtn').addEventListener('click', function(){
+    var h=document.documentElement, n=h.getAttribute('data-mode')==='night'?'day':'night';
+    h.setAttribute('data-mode',n); this.textContent = n==='night'?'日读':'夜读';
+  });
+
+  renderPaths(); renderScreen(); renderScan(); renderAC(); runAll();
+})();
+</script>
+</body>
+</html>

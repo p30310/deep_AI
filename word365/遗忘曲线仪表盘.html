@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="dark" />
+<title>遗忘曲线仪表盘 · 背单词365</title>
+
+<!-- 展示字 Space Mono / 中文 Noto Sans SC：font-display:swap + 本地回退（离线 file:// 自动回退，不阻断） -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   令牌层 —— 暗色暖近黑 / 工业实用 + 克制 Retro 科学测量感
+   全部颜色走变量；主色沉静青灰(60) + 琥珀橙(风险/10) + 青绿(稳固)
+   ============================================================ */
+:root{
+  --bg:#0c0e0f;
+  --bg-2:#101415;
+  --surface:#14191b;
+  --surface-2:#1a2022;
+  --text:#eaf0f1;          /* 正文：暖近白，高对比 */
+  --muted:#9fadae;         /* 次要文字：实测对 --surface ≈ 7:1 */
+  --faint:#86989b;         /* 刻度/辅助小字：实测 对 surface 5.89:1 / 对 surface-2 5.48:1（原 #74868a 对 surface-2 仅 4.33:1，不足 4.5） */
+  --line:rgba(232,240,241,.12);
+  --line-2:rgba(232,240,241,.24);
+
+  --high:#5eead4;          /* 稳固：青绿 */
+  --mid:#8aa7ad;           /* 巩固：沉静青灰 */
+  --low:#ff6b2c;           /* 风险：琥珀橙（唯一 UI 强调色） */
+  --accent:#ff6b2c;
+  --focus:#5eead4;
+
+  --mono:'Space Mono','JetBrains Mono','IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --sans:'Noto Sans SC','Microsoft YaHei','PingFang SC',system-ui,sans-serif;
+
+  --s0:12px; --s1:14px; --s2:16px; --s3:20px; --s4:28px; --s5:40px; --s6:64px;
+  --r-sm:3px; --r-md:6px; --r-lg:10px;
+
+  --sh1:0 2px 8px rgba(0,0,0,.28);
+  --sh2:0 10px 28px rgba(0,0,0,.40);
+  --sh3:0 26px 68px rgba(0,0,0,.54);
+
+  --ease:cubic-bezier(.16,1,.3,1);
+  --dur:640ms;
+
+  --grid:repeating-linear-gradient(0deg,transparent 0 31px,rgba(232,240,241,.035) 31px 32px),
+         repeating-linear-gradient(90deg,transparent 0 31px,rgba(232,240,241,.035) 31px 32px);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:var(--sans);
+  font-size:var(--s2);
+  line-height:1.7;
+  color:var(--text);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+.tnum,.metric-val,dl dd,.dist b,.ax{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* 氛围层：细网格 + 低透明噪点 + 暖色辉光 */
+.atmosphere{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:var(--grid),
+    radial-gradient(58rem 34rem at 8% -14%,rgba(94,234,212,.075),transparent 62%),
+    radial-gradient(48rem 36rem at 108% 6%,rgba(255,107,44,.075),transparent 58%);
+}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.page{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(16px,4vw,56px) 56px}
+
+/* ---------- 入场编排：5 组错峰，只动 transform / opacity ---------- */
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes draw{to{stroke-dashoffset:0}}
+.reveal{opacity:0;animation:rise var(--dur) var(--ease) both}
+.g1{animation-delay:0ms}.g2{animation-delay:90ms}.g3{animation-delay:180ms}
+.g4{animation-delay:270ms}.g5{animation-delay:360ms}
+
+/* ---------- 报头 ---------- */
+.masthead{border-top:2px solid var(--low);padding-top:18px;position:relative}
+.kicker{
+  font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;align-items:center;
+}
+.kicker .tag{color:var(--bg);background:var(--low);padding:1px 7px;border-radius:var(--r-sm);font-weight:700;letter-spacing:.12em}
+h1{
+  font-family:var(--mono);font-weight:700;
+  font-size:clamp(48px,9vw,108px);
+  letter-spacing:-.04em;line-height:.95;
+  margin:18px 0 10px;color:var(--text);
+  text-wrap:balance;
+}
+h1 .dim{color:var(--muted)}h1 .stop{color:var(--low)}
+.lede{max-width:62ch;color:var(--muted);font-size:var(--s1);margin:0 0 14px}
+.stamp{
+  display:inline-flex;align-items:center;gap:9px;min-height:32px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--faint);
+  border:1px solid var(--line);border-radius:var(--r-sm);padding:3px 10px;
+}
+.stamp i{width:6px;height:6px;border-radius:50%;background:var(--high);box-shadow:0 0 10px var(--high)}
+
+/* ---------- 概览指标条（破格：负边距压住曲线卡片上沿 + 左冲出 34px） ---------- */
+.overview{
+  position:relative;z-index:5;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--sh2);margin:34px 0 -26px;
+}
+.metric{background:var(--surface);padding:16px 18px 15px;position:relative;overflow:hidden}
+.metric:first-child{border-left:3px solid var(--low)}
+.metric-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;white-space:nowrap}
+.metric-val{font-family:var(--mono);font-weight:700;font-size:clamp(26px,3.4vw,38px);line-height:1.1;letter-spacing:-.03em;display:block;margin-top:6px}
+.metric-val small{font-size:.42em;color:var(--faint);letter-spacing:0;margin-left:3px}
+.metric.hi .metric-val{color:var(--high)}
+.metric.md .metric-val{color:var(--mid)}
+.metric.lo .metric-val{color:var(--low)}
+
+/* ---------- 主体：非对称双栏 ---------- */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start}
+.chart-card{
+  margin-left:34px;                 /* 破格：向内缩进，让指标条冲出其左沿 */
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));
+  border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh3);padding:44px 18px 16px;min-width:0;
+}
+.card-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:0 8px 10px}
+h2{font-family:var(--mono);font-size:15px;letter-spacing:.02em;margin:0;font-weight:700}
+.card-head .sub{font-size:12px;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.legend .lg-hi{background:var(--high)}.legend .lg-md{background:var(--mid)}.legend .lg-lo{background:var(--low)}
+.legend .lg-proxy{background:transparent;border:2px solid var(--mid)}
+
+.chart-wrap{position:relative;width:100%;min-height:0}
+svg#chart{display:block;width:100%;height:auto;overflow:visible;touch-action:manipulation}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg .grid-v{stroke-dasharray:2 6;opacity:.7}
+svg .ax{fill:var(--faint);font-family:var(--mono);font-size:11px}
+svg .ax-y{text-anchor:end}
+svg .ax-x{text-anchor:middle}
+svg .ax-unit{text-anchor:end;fill:var(--muted)}
+svg .ax-xlabel{text-anchor:end;fill:var(--muted);font-size:10px;letter-spacing:.06em}
+svg .ref-curve-halo{fill:none;stroke:url(#curveFade);stroke-width:10;opacity:.22}
+svg .ref-curve{
+  fill:none;stroke:var(--high);stroke-width:1.5;stroke-dasharray:1500;stroke-dashoffset:1500;
+  opacity:.85;animation:draw 1500ms var(--ease) 520ms both;
+}
+svg .ref-label{fill:var(--muted);font-family:var(--mono);font-size:11px;font-style:italic;opacity:.9}
+
+/* 散点 */
+.ptg{cursor:pointer;outline:none}
+.ptg .hit{fill:transparent}
+.ptg .dot{transform-box:fill-box;transform-origin:center;transition:transform 160ms var(--ease),stroke 160ms var(--ease)}
+.ptg .ring{fill:none;stroke:var(--focus);stroke-width:2;opacity:0;transition:opacity 140ms linear}
+.pt-hi .dot{fill:var(--high);stroke:rgba(12,14,15,.7);stroke-width:1}
+.pt-md .dot{fill:var(--mid);stroke:rgba(12,14,15,.7);stroke-width:1}
+.pt-lo .dot{fill:var(--low);stroke:rgba(12,14,15,.7);stroke-width:1}
+.pt-proxy .dot{fill:transparent;stroke-width:2}
+.pt-proxy.pt-hi .dot{stroke:var(--high)}
+.pt-proxy.pt-md .dot{stroke:var(--mid)}
+.pt-proxy.pt-lo .dot{stroke:var(--low)}
+.ptg:hover .dot,.ptg:focus-visible .dot{transform:scale(1.4);stroke:#fff;stroke-width:1.5}
+.ptg:focus-visible .ring{opacity:1}
+
+/* 详情卡（跟随散点，hover/focus/click 显示） */
+.detail{
+  position:absolute;z-index:9;width:222px;pointer-events:none;
+  background:rgba(10,13,14,.97);border:1px solid var(--line-2);border-radius:var(--r-md);
+  box-shadow:var(--sh3);padding:12px 14px;backdrop-filter:blur(6px);
+}
+.detail[hidden]{display:none}
+.dl-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:8px}
+.dl-word{font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:-.02em;word-break:break-all}
+.dl-lvl{font-size:11px;white-space:nowrap;padding:2px 7px;border-radius:var(--r-sm)}
+.dl-lvl.lv-high{color:var(--bg);background:var(--high)}
+.dl-lvl.lv-mid{color:var(--bg);background:var(--mid)}
+.dl-lvl.lv-low{color:var(--bg);background:var(--low)}
+.dl-grid{display:grid;grid-template-columns:1fr auto;gap:3px 12px;margin:0;font-size:12px}
+.dl-grid dt{color:var(--muted)}
+.dl-grid dd{margin:0;text-align:right;font-family:var(--mono);font-weight:700}
+.dl-grid dd small{font-size:10px;color:var(--faint);font-weight:400;margin-left:2px}
+.dl-basis{margin:9px 0 0;font-size:11px;color:var(--muted);border-top:1px dashed var(--line);padding-top:7px}
+.chart-note{font-size:11px;color:var(--muted);padding:8px 8px 0;line-height:1.6}
+
+/* ---------- 侧栏 ---------- */
+.side{display:flex;flex-direction:column;gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:18px}
+.panel h2{margin-bottom:14px}
+.stack{display:flex;height:14px;width:100%;border-radius:2px;overflow:hidden;background:var(--bg-2);border:1px solid var(--line)}
+.seg{height:100%}.seg-high{background:var(--high)}.seg-mid{background:var(--mid)}.seg-low{background:var(--low)}
+.dist{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:7px;font-size:12px}
+.dist li{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:9px}
+.dist .sw{width:10px;height:10px;border-radius:2px}
+.sw-high{background:var(--high)}.sw-mid{background:var(--mid)}.sw-low{background:var(--low)}
+.dist b{font-family:var(--mono);font-weight:400;color:var(--muted);font-size:11px}
+.dist b em{color:var(--faint);font-style:normal}
+.dist .dl-empty{grid-template-columns:1fr;color:var(--muted)}
+.formula{
+  font-family:var(--mono);font-size:11px;color:var(--high);
+  background:var(--bg-2);border-left:2px solid var(--high);padding:9px 10px;margin:0 0 12px;
+  word-break:break-word;
+}
+.disclaimer{font-size:12px;color:var(--muted);line-height:1.75;margin:0}
+.disclaimer strong{color:var(--text)}
+
+/* ---------- 空态 / 错误态 ---------- */
+.empty,.error-banner{border:1px dashed var(--line-2);border-radius:var(--r-md);padding:54px 22px;text-align:center;background:var(--surface)}
+.empty[hidden],.error-banner[hidden]{display:none}
+.empty .mark{font-family:var(--mono);font-size:30px;color:var(--muted);letter-spacing:.2em}
+.empty h3{font-family:var(--mono);font-size:18px;margin:10px 0 6px}
+.empty p{color:var(--muted);font-size:13px;margin:0 0 18px}
+.error-banner{border-color:var(--low);color:var(--low);font-family:var(--mono);font-size:13px;text-align:left}
+.link-btn{
+  display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;
+  font-family:var(--mono);font-size:13px;text-decoration:none;
+  color:var(--bg);background:var(--low);border:1px solid var(--low);border-radius:var(--r-sm);
+  transition:transform 160ms var(--ease),box-shadow 160ms var(--ease);
+}
+.link-btn:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+
+/* ---------- 焦点可见（≥2px + 2px 偏移） ---------- */
+a:focus-visible,.link-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- 页脚 ---------- */
+.foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  margin-top:34px;border-top:1px solid var(--line);padding-top:16px;
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--faint)}
+.foot .back{min-height:44px;display:inline-flex;align-items:center;text-decoration:none;color:var(--text);padding:0 4px}
+.foot .back:hover{color:var(--low)}
+
+/* ---------- 响应式：768 / 375 ---------- */
+@media (max-width:980px){
+  .layout{grid-template-columns:1fr}
+  .chart-card{margin-left:0}
+  .side{flex-direction:row;flex-wrap:wrap}
+  .side>.panel{flex:1 1 280px}
+}
+@media (max-width:560px){
+  .page{padding:24px 16px 40px}
+  .overview{margin:26px 0 -18px;grid-template-columns:repeat(2,1fr)}
+  .chart-card{padding:38px 8px 12px}
+  .card-head{padding:0 4px 8px}
+  .legend{gap:9px}
+  .side{flex-direction:column}
+  .stamp{font-size:10px}
+  h1{letter-spacing:-.03em}
+}
+
+/* ---------- 降级动效：一键关闭全部 ---------- */
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1!important;animation:none!important;transform:none!important}
+  .ref-curve{stroke-dashoffset:0!important;animation:none!important}
+  .ptg .dot,.ptg .ring,.link-btn{transition:none!important}
+  .link-btn:hover{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="atmosphere" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="page">
+  <header class="masthead reveal g1">
+    <div class="kicker"><span class="tag">R/O</span> MEMORY OBSERVATORY <span aria-hidden="true">·</span> 背单词365 <span aria-hidden="true">·</span> 只读诊断</div>
+    <h1>FORGETTING<br />CURVE<span class="stop">.</span></h1>
+    <p class="lede">把抽象的 SRS 状态变成可感知的记忆强度与遗忘风险：每个已学词，都是遗忘曲线上的一个坐标。</p>
+    <div class="stamp" id="stamp"><i aria-hidden="true"></i> READ-ONLY</div>
+  </header>
+
+  <main>
+    <!-- 概览指标条：真实计算，破格压住图表卡片 -->
+    <section class="overview reveal g2" aria-label="概览指标">
+      <div class="metric"><span class="metric-label">已学词</span><span class="metric-val" id="mLearned">—</span></div>
+      <div class="metric hi"><span class="metric-label">记得牢 / HIGH</span><span class="metric-val" id="mHigh">—</span></div>
+      <div class="metric md"><span class="metric-label">在巩固 / MID</span><span class="metric-val" id="mMid">—</span></div>
+      <div class="metric lo"><span class="metric-label">需复习 / LOW</span><span class="metric-val" id="mLow">—</span></div>
+      <div class="metric"><span class="metric-label">平均事件数</span><span class="metric-val" id="mAvg">—</span></div>
+    </section>
+
+    <div class="layout">
+      <!-- 记忆点：真实遗忘曲线散点图 -->
+      <section class="chart-card reveal g3" aria-labelledby="chartTitle">
+        <div class="card-head">
+          <div><h2 id="chartTitle">记忆保持率 · 散点图</h2><div class="sub">SCATTER / RETENTION vs. DAYS</div></div>
+          <div class="legend" aria-label="图例">
+            <span><i class="lg-hi"></i>记得牢</span>
+            <span><i class="lg-md"></i>在巩固</span>
+            <span><i class="lg-lo"></i>需复习</span>
+            <span><i class="lg-proxy"></i>等级估算</span>
+          </div>
+        </div>
+
+        <div class="chart-wrap" id="chartWrap">
+          <!-- role=group 而非 img：内含 tabindex=0 的可聚焦散点，role=img 会把子节点整体吞掉，导致键盘/读屏无法逐点导航 -->
+          <svg id="chart" viewBox="0 0 980 440" role="group" aria-roledescription="可交互散点图" aria-labelledby="chartTitle" aria-describedby="chartNote"></svg>
+          <div class="detail" id="detail" hidden aria-live="polite"></div>
+          <div class="empty" id="empty" hidden>
+            <div class="mark" aria-hidden="true">∅ / 000</div>
+            <h3>无可分析的记忆数据</h3>
+            <p>还没有可分析的记忆数据，先去背几个词吧。</p>
+            <a class="link-btn" href="index.html">去背单词 →</a>
+          </div>
+        </div>
+        <p class="chart-note" id="chartNote">每点为一个已学词 · 横轴距上次复习天数 · 纵轴为启发式保持率估计 · 空心点＝基于等级估算</p>
+      </section>
+
+      <!-- 侧栏：强度分布 + 口径说明 -->
+      <aside class="side reveal g4" aria-label="分布与口径">
+        <section class="panel" aria-labelledby="distTitle">
+          <h2 id="distTitle">强度分布</h2>
+          <div class="stack" id="stack" role="img" aria-label="强度分布"></div>
+          <ul class="dist" id="distLegend"></ul>
+        </section>
+        <section class="panel" aria-labelledby="noteTitle">
+          <h2 id="noteTitle">口径说明</h2>
+          <p class="formula">保持率估计 = 强度分(0–6) ÷ 6</p>
+          <p class="disclaimer"><strong>保持率为基于记忆强度模型的启发式估计，仅供自我观察，非精确记忆科学预测。</strong>强度分由 <code>Core.strengthOf</code> 依据作答记录（或等级代理）得出，为 0–6 的整数；空心点表示无有效事件、按当前等级估算。数据全部来自本地真实记录，本页只读，不改变复习安排。</p>
+        </section>
+      </aside>
+    </div>
+
+    <div class="error-banner reveal g5" id="loadError" role="alert" hidden></div>
+  </main>
+
+  <footer class="foot reveal g5">
+    <span>背单词365 · 独立只读观测页 · 数据不出本机</span>
+    <a class="back" href="index.html">← 返回背单词</a>
+  </footer>
+</div>
+
+<!-- 只读复用真实逻辑：引入顺序 phrases → core；浏览器下走 window.Core / window.PHRASES -->
+<script src="js/phrases.js"></script>
+<script src="js/core.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* 文案键复用 phrases.js（STRENGTH），缺键时本地兜底，不臆造 */
+  var S = (typeof PHRASES !== 'undefined' && PHRASES && PHRASES.STRENGTH) ? PHRASES.STRENGTH : {};
+  var lvlText = {
+    high: S.levelHigh || '记得牢',
+    mid:  S.levelMid  || '在巩固',
+    low:  S.levelLow  || '需多复习'
+  };
+  var basisText = {
+    events: S.basisEvents || '依据作答记录',
+    'lvl-proxy': S.basisLvlProxy || '依据当前等级'
+  };
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function finite(n) { return typeof n === 'number' && isFinite(n); }
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  var errEl = document.getElementById('loadError');
+  function fail(msg) {
+    errEl.textContent = msg;
+    errEl.hidden = false;
+    var em = document.getElementById('empty');
+    if (em) em.hidden = true;
+  }
+
+  if (typeof Core === 'undefined' || !Core || typeof Core.loadDB !== 'function') {
+    fail('数据核心未加载（js/core.js 读取失败）。请确认本页与 js/ 目录位于同一文件夹。');
+    return;
+  }
+
+  /* 真实数据：只读 loadDB，绝不写 db / localStorage */
+  var db;
+  try { db = Core.loadDB(); } catch (e) { db = null; }
+  if (!db || !db.words || typeof db.words !== 'object') {
+    fail('无法读取本地学习数据（localStorage 不可用或数据损坏）。');
+    return;
+  }
+
+  var LADDER = (Core.LADDER_DAYS && Core.LADDER_DAYS.length) ? Core.LADDER_DAYS : [1, 2, 4, 7, 15, 30, 60];
+  var MAXX = 0;
+  for (var li = 0; li < LADDER.length; li++) {
+    if (finite(LADDER[li]) && LADDER[li] > MAXX) MAXX = LADDER[li];
+  }
+  if (MAXX <= 0) MAXX = 60;
+  var DAY_MS = finite(Core.DAY_MS) && Core.DAY_MS > 0 ? Core.DAY_MS : 86400000;
+  var t0 = (Core.now && finite(Core.now())) ? Core.now() : Date.now();
+  var t0v = finite(t0) ? t0 : Date.now();
+
+  /* 遍历真实词条，过滤 reps>0；异常数据跳过，不抛错、不产生 NaN */
+  var words = [];
+  var keys = Object.keys(db.words);
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    var rec = db.words[key];
+    if (!rec || typeof rec !== 'object') continue;
+    if (!(rec.reps > 0)) continue;                       // 只统计已学词
+    var st;
+    try { st = Core.strengthOf(db, key); } catch (e) { continue; }
+    if (!st || typeof st !== 'object') continue;
+    var score = finite(st.score) ? clamp(st.score, 0, 6) : null;
+    var level = (st.level === 'high' || st.level === 'mid' || st.level === 'low') ? st.level : 'low';
+    var n = finite(st.n) ? Math.max(0, st.n) : 0;
+    var basis = (st.basis === 'events') ? 'events' : 'lvl-proxy';
+    /* score 为 0–6 整数（core.js strengthEventScore/lvlProxyScore），此处做可解释的归一化映射 */
+    var retention = score === null ? 0 : clamp(score / 6, 0, 1);
+    var days = null;
+    if (finite(rec.last) && rec.last > 0) {
+      days = Math.floor((t0v - rec.last) / DAY_MS);
+      if (!finite(days) || days < 0) days = 0;
+      if (days > MAXX) days = MAXX;                      // 超出范围 clamp 到最右
+    }
+    var due = finite(rec.due) ? rec.due : 0;
+    var w = (typeof rec.w === 'string' && rec.w) ? rec.w : key.replace(/^w::/, '');
+    words.push({
+      w: w, level: level, score: score, n: n, basis: basis,
+      retention: retention, days: days, due: due
+    });
+  }
+
+  var learned = words.length;
+  var cnt = { high: 0, mid: 0, low: 0 }, nsum = 0;
+  for (var k = 0; k < learned; k++) { cnt[words[k].level]++; nsum += words[k].n; }
+  var avgN = learned ? (nsum / learned) : 0;
+
+  /* 概览指标（真实统计） */
+  document.getElementById('mLearned').textContent = learned;
+  document.getElementById('mHigh').textContent = cnt.high;
+  document.getElementById('mMid').textContent = cnt.mid;
+  document.getElementById('mLow').textContent = cnt.low;
+  document.getElementById('mAvg').textContent = learned ? avgN.toFixed(1) : '—';
+  document.getElementById('stamp').innerHTML = '<i aria-hidden="true"></i> READ-ONLY · ' + learned + ' 词';
+
+  /* 强度分布分段条 */
+  var stack = document.getElementById('stack');
+  var distLegend = document.getElementById('distLegend');
+  var order = ['high', 'mid', 'low'];
+  if (learned > 0) {
+    var parts = order.map(function (key) {
+      return { key: key, cnt: cnt[key], pct: cnt[key] / learned * 100 };
+    });
+    stack.innerHTML = parts.filter(function (s) { return s.pct > 0; }).map(function (s) {
+      return '<span class="seg seg-' + s.key + '" style="width:' + s.pct.toFixed(2) + '%"></span>';
+    }).join('');
+    stack.setAttribute('aria-label', '强度分布：记得牢 ' + cnt.high + '，在巩固 ' + cnt.mid + '，需多复习 ' + cnt.low);
+    distLegend.innerHTML = parts.map(function (s) {
+      return '<li><i class="sw sw-' + s.key + '"></i><span>' + lvlText[s.key] + '</span><b>' + s.cnt + ' <em>·</em> ' + s.pct.toFixed(0) + '%</b></li>';
+    }).join('');
+  } else {
+    stack.innerHTML = '';
+    stack.setAttribute('aria-label', '暂无分布数据');
+    distLegend.innerHTML = '<li class="dl-empty">暂无分布数据</li>';
+  }
+
+  var chartWrap = document.getElementById('chartWrap');
+  var chart = document.getElementById('chart');
+  var emptyEl = document.getElementById('empty');
+  var detail = document.getElementById('detail');
+
+  if (learned === 0) {
+    chart.hidden = true;
+    emptyEl.hidden = false;
+    return;
+  }
+
+  /* ---------- 内联 SVG 散点图（零依赖） ----------
+     关键：viewBox 宽度取容器实测宽，使 SVG 用户单位 == CSS 像素。
+     若沿用固定 viewBox="0 0 980 440"，整图会按容器宽缩放：
+     桌面 776px 宽时 11px 刻度字实渲染 8.71px，手机 327px 宽时仅 3.67px，均不可读。 */
+  var H = 440;
+  var PL = 46, PR = 962, PT = 24, PB = 384, PW = 916, PH = 360;
+  function xOf(d) { return PL + (clamp(d, 0, MAXX) / MAXX) * PW; }
+  function yOf(r) { return PB - clamp(r, 0, 1) * PH; }
+
+  function measureW() {
+    var w = chartWrap ? chartWrap.clientWidth : 0;
+    if (!finite(w) || w <= 0) w = 900;          /* 无布局信息时给安全默认，不产生 NaN */
+    return Math.max(300, Math.round(w));
+  }
+
+  function buildChart() {
+    var W = measureW();
+    PL = 46; PR = W - 16; PT = 24; PB = H - 56;
+    PW = Math.max(60, PR - PL); PH = Math.max(60, PB - PT);
+    chart.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+  var p = [];
+  p.push('<defs><linearGradient id="curveFade" x1="0" y1="0" x2="0" y2="1">'
+       + '<stop offset="0" stop-color="rgba(94,234,212,.55)"/>'
+       + '<stop offset="1" stop-color="rgba(94,234,212,0)"/></linearGradient></defs>');
+
+  var rTicks = [0, 0.25, 0.5, 0.75, 1];
+  for (var a = 0; a < rTicks.length; a++) {
+    var ry = yOf(rTicks[a]);
+    p.push('<line class="grid" x1="' + PL + '" y1="' + ry + '" x2="' + PR + '" y2="' + ry + '"/>');
+    p.push('<text class="ax ax-y" x="' + (PL - 12) + '" y="' + (ry + 4) + '">' + (rTicks[a] * 100) + '</text>');
+  }
+  p.push('<text class="ax ax-unit" x="' + (PL - 12) + '" y="' + (PT - 10) + '">%</text>');
+
+  var seen = {}, ticks = [0];
+  for (var b = 0; b < LADDER.length; b++) {
+    var tv = LADDER[b];
+    if (finite(tv) && tv >= 0 && tv <= MAXX && !seen[tv]) { seen[tv] = 1; ticks.push(tv); }
+  }
+  if (MAXX !== ticks[ticks.length - 1]) ticks.push(MAXX);
+  for (var c = 0; c < ticks.length; c++) {
+    var tx = xOf(ticks[c]);
+    p.push('<line class="grid grid-v" x1="' + tx + '" y1="' + PT + '" x2="' + tx + '" y2="' + PB + '"/>');
+    p.push('<text class="ax ax-x" x="' + tx + '" y="' + (PB + 22) + '">' + ticks[c] + '</text>');
+  }
+  p.push('<text class="ax ax-xlabel" x="' + PR + '" y="' + (PB + 40) + '">距上次复习 / 天</text>');
+
+  /* 参考遗忘曲线（平滑下降，标注"示意"） */
+  var curve = [];
+  for (var d = 0; d <= MAXX; d += 1) {
+    var rr = 0.12 + 0.86 * Math.exp(-d / 9);
+    curve.push((d ? 'L' : 'M') + xOf(d).toFixed(1) + ' ' + yOf(rr).toFixed(1));
+  }
+  var curveD = curve.join(' ');
+  p.push('<path class="ref-curve-halo" d="' + curveD + '"/>');
+  p.push('<path class="ref-curve" d="' + curveD + '"/>');
+  var rlD = Math.min(MAXX, 26);
+  var rlX = Math.max(PL, Math.min(xOf(rlD), PR - 96));   /* 窄屏时不冲出右边界 */
+  p.push('<text class="ref-label" x="' + rlX.toFixed(1) + '" y="' + yOf(0.12 + 0.86 * Math.exp(-rlD / 9)).toFixed(1) + '">典型遗忘 · 示意</text>');
+
+  /* 每个已学词 = 一个圆形散点，按 level 着色；lvl-proxy 用空心圈 */
+  for (var q = 0; q < learned; q++) {
+    var wd = words[q];
+    var cx = xOf(wd.days === null ? 0 : wd.days).toFixed(1);
+    var cy = yOf(wd.retention).toFixed(1);
+    var isProxy = (wd.basis === 'lvl-proxy' || wd.n === 0);
+    var cls = 'ptg pt-' + wd.level + (isProxy ? ' pt-proxy' : '');
+    var label = '单词 ' + wd.w + '，强度 ' + lvlText[wd.level] + '，保持率估计 ' + Math.round(wd.retention * 100) + '%';
+    p.push('<g class="' + cls + '" data-i="' + q + '" tabindex="0" role="img" aria-label="' + esc(label) + '">'
+         + '<circle class="hit" cx="' + cx + '" cy="' + cy + '" r="22"/>'   /* 22*2=44px 触控命中区（验收判据⑤）；密集区取最上层点，精确选择走键盘 Tab */
+         + '<circle class="ring" cx="' + cx + '" cy="' + cy + '" r="11"/>'
+         + '<circle class="dot" cx="' + cx + '" cy="' + cy + '" r="' + (isProxy ? 5 : 6) + '"/>'
+         + '</g>');
+  }
+  chart.innerHTML = p.join('');
+    bindPoints();            /* 每次重绘后必须重新绑定：重绘会替换掉全部节点 */
+  }
+
+  /* ---------- 详情卡：hover / focus / 点击 ---------- */
+  function dueText(ts) {
+    if (!finite(ts) || ts <= 0) return '—';
+    try {
+      var dt = new Date(ts);
+      if (isNaN(dt.getTime())) return '—';
+      return dt.toLocaleDateString('zh-CN');
+    } catch (e) { return '—'; }
+  }
+  function showDetail(idx, target) {
+    var wd = words[idx];
+    if (!wd) return;
+    detail.innerHTML =
+      '<div class="dl-head"><span class="dl-word">' + esc(wd.w) + '</span>'
+      + '<span class="dl-lvl lv-' + wd.level + '">' + lvlText[wd.level] + '</span></div>'
+      + '<dl class="dl-grid">'
+      + '<dt>保持率估计</dt><dd>' + Math.round(wd.retention * 100) + '<small>%</small></dd>'
+      + '<dt>强度分</dt><dd>' + (wd.score === null ? '—' : wd.score + '<small>/6</small>') + '</dd>'
+      + '<dt>有效事件数</dt><dd>' + wd.n + '</dd>'
+      + '<dt>距上次复习</dt><dd>' + (wd.days === null ? '未知' : wd.days + '<small> 天</small>') + '</dd>'
+      + '<dt>下次到期</dt><dd>' + dueText(wd.due) + '</dd>'
+      + '</dl>'
+      + '<p class="dl-basis">' + (wd.basis === 'events' ? basisText.events : basisText['lvl-proxy'])
+      + (wd.basis === 'lvl-proxy' ? '（空心点）' : '') + '</p>';
+    detail.hidden = false;
+    var wr = chartWrap.getBoundingClientRect();
+    var tr = target.getBoundingClientRect();
+    var px = tr.left - wr.left + tr.width / 2;
+    var py = tr.top - wr.top;
+    var dw = detail.offsetWidth, dh = detail.offsetHeight;
+    var left = clamp(px - dw / 2, 8, Math.max(8, wr.width - dw - 8));
+    var top = py - dh - 14;
+    if (top < 8) top = py + 22;
+    top = clamp(top, 8, Math.max(8, wr.height - dh - 8));
+    detail.style.left = left + 'px';
+    detail.style.top = top + 'px';
+  }
+  function hideDetail() { detail.hidden = true; }
+
+  function bindPoints() {
+    var groups = chart.querySelectorAll('.ptg');
+    for (var g = 0; g < groups.length; g++) {
+      (function (el, idx) {
+        el.addEventListener('mouseenter', function () { showDetail(idx, el); });
+        el.addEventListener('mouseleave', function () { if (document.activeElement !== el) hideDetail(); });
+        el.addEventListener('focus', function () { showDetail(idx, el); });
+        el.addEventListener('blur', function () { hideDetail(); });
+        el.addEventListener('click', function (e) { e.stopPropagation(); showDetail(idx, el); });
+      })(groups[g], g);
+    }
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') hideDetail(); });
+  document.addEventListener('click', function () { hideDetail(); });
+
+  /* 首绘 */
+  buildChart();
+
+  /* 仅在容器宽度变化时重绘：viewBox 跟随容器，保证 1:1 像素映射 */
+  var lastW = measureW();
+  function relayout() {
+    if (chart.hidden) return;
+    var w = measureW();
+    if (w === lastW) return;
+    lastW = w;
+    hideDetail();
+    buildChart();
+  }
+  if (typeof ResizeObserver === 'function') {
+    try { new ResizeObserver(relayout).observe(chartWrap); } catch (e) { /* 老浏览器降级 */ }
+  }
+  window.addEventListener('resize', relayout);
+  window.addEventListener('orientationchange', relayout);
+})();
+</script>
+</body>
+</html>

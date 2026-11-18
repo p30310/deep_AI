@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>单词365 · 册页皮肤落地｜前后对照</title>
+<style>
+  :root{--desk:#E9E3D6;--ink:#1E3A30;--mute:#6E736C;--gold:#A8874E;--seal:#9C3B2E;--rule:#DCD6C8;
+        --cn:"Songti SC","STSong","SimSun",serif;--lat:Georgia,"Times New Roman",serif;
+        --sans:"Microsoft YaHei UI","PingFang SC","Microsoft YaHei",sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--desk);color:var(--ink);font-family:var(--sans);font-size:14px;padding:38px 22px 60px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto}
+  header{text-align:center;margin-bottom:32px}
+  .eyebrow{font-size:11px;letter-spacing:.28em;color:var(--gold);margin-bottom:12px}
+  h1{font-family:var(--cn);font-weight:400;font-size:30px;letter-spacing:.08em}
+  .sub{color:var(--mute);font-size:12.5px;margin-top:10px;letter-spacing:.04em}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .col{min-width:0}
+  .col-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding:0 2px}
+  .col-head b{font-family:var(--cn);font-weight:400;font-size:17px;letter-spacing:.08em}
+  .col-head span{font-size:11px;letter-spacing:.1em;color:var(--mute)}
+  .mock{border:1px solid #C9C2B2;height:452px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+  .bar{height:46px;display:flex;align-items:center;gap:12px;padding:0 16px;flex:0 0 auto}
+  .brand{display:flex;align-items:center;gap:8px;min-width:0}
+  .brand i{width:22px;height:22px;display:block;flex:0 0 auto}
+  .brand b{font-size:13px;white-space:nowrap}
+  .brand small{display:block;font-size:9px;font-weight:400;margin-top:1px}
+  .tabs{margin-left:auto;display:flex;gap:2px;white-space:nowrap}
+  .tabs span{font-size:10.5px;padding:6px 8px}
+  .body{padding:22px 26px;flex:1;overflow:hidden}
+  .date{font-size:10.5px;letter-spacing:.08em;margin-bottom:8px}
+  .title{font-size:22px;margin-bottom:20px;letter-spacing:.01em}
+  .hero{display:flex;align-items:center;gap:18px;padding:16px 18px;margin-bottom:14px}
+  .ring{width:78px;height:78px;flex:0 0 auto;position:relative}
+  .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .ring .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+  .ring .rc b{font-size:19px}
+  .ring .rc small{font-size:8.5px;letter-spacing:.08em;margin-top:2px}
+  .hinfo{min-width:0}
+  .hinfo h3{font-size:14px;margin-bottom:5px}
+  .hinfo p{font-size:11px;margin-bottom:10px}
+  .mini{display:flex;gap:14px;font-size:9.5px}
+  .mini b{display:block;font-size:14px}
+  .cta{display:block;width:100%;text-align:center;padding:11px 0;font-size:13px;letter-spacing:.06em;margin-bottom:12px}
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .plan{padding:12px 14px;text-align:left}
+  .plan b{display:block;font-size:20px;line-height:1.2}
+  .plan small{font-size:10px}
+  .sect{font-size:12px;margin-bottom:9px}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{font-size:10px;padding:5px 10px}
+  .shelf{display:flex;gap:8px}
+  .book{width:52px;height:68px;padding:7px 6px;display:flex;flex-direction:column;justify-content:space-between;font-size:8px;line-height:1.35}
+  .book em{font-style:normal;font-size:7px;letter-spacing:.1em;opacity:.7}
+  .book b{font-size:9.5px}
+  .book s{text-decoration:none;font-size:7px;opacity:.6}
+
+  /* ---------- 改造前：冷灰 / 圆角 / 渐变 / 阴影 ---------- */
+  .before{background:#F7F7F4;border-radius:12px;box-shadow:0 18px 40px -28px rgba(0,0,0,.35)}
+  .before .bar{background:rgba(255,255,255,.92);border-bottom:1px solid #E5E5DE;box-shadow:0 1px 0 rgba(255,255,255,.6)}
+  .before .brand i{background:#2E5240;border-radius:5px}
+  .before .brand b{font-family:var(--sans);font-weight:600;color:#22272A}
+  .before .brand small{color:#68706B;font-family:var(--sans)}
+  .before .tabs span{color:#545B58;border-radius:8px}
+  .before .tabs span.on{background:#EDF3EE;color:#2E5240;font-weight:600;border-bottom:2px dashed #2E5240}
+  .before .date{color:#68706B}
+  .before .title{font-family:var(--sans);font-weight:600;color:#22272A}
+  .before .title em{font-style:normal;font-family:Georgia,serif;color:#2E5240}
+  .before .hero{background:linear-gradient(180deg,#FFFFFF,#F7F7F4);border:1px solid #E5E5DE;border-radius:14px;box-shadow:0 2px 8px -2px rgba(34,39,42,.08)}
+  .before .ring .rc b,.before .ring .rc small{color:#22272A}
+  .before .ring circle.fg{stroke:#2E5240;stroke-linecap:round}
+  .before .hinfo h3{color:#22272A;font-weight:600}
+  .before .hinfo p{color:#68706B}
+  .before .mini{color:#68706B}
+  .before .mini b{color:#22272A;font-family:var(--sans);font-weight:600}
+  .before .cta{background:linear-gradient(180deg,#3D6B53,#2E5240);color:#fff;border-radius:14px;box-shadow:0 12px 24px -14px rgba(46,82,64,.8)}
+  .before .plan{background:#fff;border:1px solid #E5E5DE;border-radius:14px;box-shadow:0 1px 2px rgba(34,39,42,.04)}
+  .before .plan b{color:#22272A;font-family:var(--sans);font-weight:600}
+  .before .plan small{color:#68706B}
+  .before .sect{color:#22272A;font-weight:600}
+  .before .chip{background:#fff;border:1px solid #D3D6D0;border-radius:999px;color:#545B58}
+  .before .book{border-radius:8px;color:#fff;box-shadow:0 4px 10px -6px rgba(0,0,0,.5)}
+  .before .book:nth-child(1){background:linear-gradient(155deg,#E8874B,#8E3618)}
+  .before .book:nth-child(2){background:linear-gradient(155deg,#4E82C4,#1B3564)}
+  .before .book:nth-child(3){background:linear-gradient(155deg,#8A6FC0,#3A2A63)}
+  .before .book:nth-child(4){background:linear-gradient(155deg,#D8B44E,#6F5613)}
+  .before .book:nth-child(5){background:linear-gradient(155deg,#3FA98A,#14503C)}
+
+  /* ---------- 改造后：宣纸 / 直角 / 界栏 / 墨松 ---------- */
+  .after{background:#F4F1E9}
+  .after::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .after .bar{background:#FBF9F3;border-bottom:1px solid #C4BDA9;border-top:2px solid #A8874E}
+  .after .brand i{background:#1E3A30}
+  .after .brand b{font-family:var(--cn);font-weight:500;letter-spacing:.08em;color:#1E3A30}
+  .after .brand small{font-family:var(--lat);font-style:italic;color:#A8874E}
+  .after .tabs span{color:#5C655E}
+  .after .tabs span.on{color:#9C3B2E;border-bottom:2px solid #9C3B2E}
+  .after .date{font-family:var(--lat);letter-spacing:.12em;color:#A8874E}
+  .after .title{font-family:var(--cn);font-weight:400;letter-spacing:.08em;color:#1E3A30}
+  .after .title em{font-style:normal;color:#9C3B2E}
+  .after .hero{background:#FBF9F3;border:1px solid #DCD6C8;box-shadow:none}
+  .after .ring{width:70px;height:70px;opacity:.78}
+  .after .ring .rc b{color:#1E3A30;font-family:var(--lat);font-weight:400}
+  .after .ring .rc small{color:#6E736C}
+  .after .ring circle.fg{stroke:#1E3A30}
+  .after .hinfo h3{font-family:var(--cn);font-weight:500;color:#1E3A30}
+  .after .hinfo p{color:#5C655E}
+  .after .mini{color:#6E736C}
+  .after .mini b{font-family:var(--lat);font-weight:400;color:#1E3A30}
+  .after .cta{background:#1E3A30;color:#FBF9F3;border:1px solid #1E3A30}
+  .after .plan{background:#FBF9F3;border:1px solid #DCD6C8}
+  .after .plan b{font-family:var(--lat);font-weight:400;color:#1E3A30}
+  .after .plan small{color:#5C655E;letter-spacing:.06em}
+  .after .sect{font-family:var(--cn);font-weight:500;letter-spacing:.1em;color:#1E3A30;border-left:2px solid #A8874E;padding-left:9px}
+  .after .chip{background:#FBF9F3;border:1px solid #DCD6C8;color:#3F534A}
+  .after .book{background:#FBF9F3;border:1px solid #C4BDA9;color:#1E3A30}
+  .after .book:nth-child(1){border-left:3px solid #A8623C}
+  .after .book:nth-child(2){border-left:3px solid #4B6B8C}
+  .after .book:nth-child(3){border-left:3px solid #6E5A94}
+  .after .book:nth-child(4){border-left:3px solid #9A7C33}
+  .after .book:nth-child(5){border-left:3px solid #3F7C68}
+  .after .book em{color:#A8874E}
+  .after .book b{font-family:var(--cn);font-weight:500}
+
+  /* ---------- 底部验证条 ---------- */
+  .verify{margin-top:30px;border-top:1px solid #C9C2B2;padding-top:20px}
+  .verify h2{font-family:var(--cn);font-weight:400;font-size:17px;letter-spacing:.08em;margin-bottom:14px}
+  .facts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .fact{background:#FBF9F3;border:1px solid #DCD6C8;padding:14px 16px}
+  .fact b{display:block;font-family:var(--lat);font-size:22px;font-weight:400;color:#9C3B2E;line-height:1.2}
+  .fact span{font-size:11px;color:#6E736C;letter-spacing:.04em}
+  .note{font-size:11.5px;color:#6E736C;margin-top:16px;line-height:1.9}
+  .note code{font-family:var(--lat);background:#FBF9F3;border:1px solid #DCD6C8;padding:1px 5px}
+  footer{margin-top:26px;text-align:center;font-size:11px;color:#8A8F86;letter-spacing:.08em}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}.facts{grid-template-columns:1fr 1fr}body{padding:24px 14px 40px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">F O L I O　S K I N　·　L A N D E D</div>
+    <h1>册页皮肤，已经装进 365</h1>
+    <p class="sub">界面语汇示意（非运行截图）　·　左为 v2.0 原貌，右为已落地的册页皮肤　·　2026-11-13</p>
+  </header>
+
+  <div class="grid">
+    <!-- 改造前 -->
+    <div class="col">
+      <div class="col-head"><b>改造前 · v2.0</b><span>冷灰 / 圆角 / 渐变 / 阴影</span></div>
+      <div class="mock before">
+        <div class="bar">
+          <div class="brand"><i></i><div><b>背单词365</b><small>365天，每天进步一点</small></div></div>
+          <div class="tabs"><span class="on">学习</span><span>词书</span><span>学习统计</span><span>我的</span></div>
+        </div>
+        <div class="body">
+          <div class="date">11 月 13 日 · 星期五</div>
+          <div class="title">今天也要<em>背十个</em></div>
+          <div class="hero">
+            <div class="ring"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="33" fill="none" stroke="#E5E5DE" stroke-width="6"/><circle class="fg" cx="40" cy="40" r="33" fill="none" stroke-width="6" stroke-dasharray="207" stroke-dashoffset="145"/></svg><div class="rc"><b>30%</b><small>今日</small></div></div>
+            <div class="hinfo"><h3>四级核心词汇</h3><p>今天已学 6 个</p><div class="mini"><div><b>12</b>连续天数</div><div><b>348</b>累计单词</div><div><b>86%</b>正确率</div></div></div>
+          </div>
+          <div class="cta">继续学习</div>
+          <div class="plans"><div class="plan"><b>14</b><small>待学新词</small></div><div class="plan"><b>8</b><small>待复习</small></div></div>
+          <div class="sect">重点复习</div>
+          <div class="chips"><span class="chip">模糊 12</span><span class="chip">不认识 5</span><span class="chip">错词本 9</span></div>
+          <div class="shelf"><div class="book"><em>CET-4</em><b>四级</b><s>100 词</s></div><div class="book"><em>CET-6</em><b>六级</b><s>100 词</s></div><div class="book"><em>KAOYAN</em><b>考研</b><s>100 词</s></div><div class="book"><em>IELTS</em><b>雅思</b><s>100 词</s></div><div class="book"><em>JOB</em><b>职场</b><s>60 词</s></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 改造后 -->
+    <div class="col">
+      <div class="col-head"><b>改造后 · 册页皮肤</b><span>宣纸 / 直角 / 界栏 / 墨松</span></div>
+      <div class="mock after">
+        <div class="bar">
+          <div class="brand"><i></i><div><b>背单词365</b><small>一日一页，词自成书</small></div></div>
+          <div class="tabs"><span class="on">学习</span><span>词书</span><span>学习统计</span><span>我的</span></div>
+        </div>
+        <div class="body">
+          <div class="date">11 月 13 日 · 星期五</div>
+          <div class="title">翻开今日<em>这一页</em></div>
+          <div class="hero">
+            <div class="ring"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="33" fill="none" stroke="#DCD6C8" stroke-width="6"/><circle class="fg" cx="40" cy="40" r="33" fill="none" stroke-width="6" stroke-dasharray="207" stroke-dashoffset="145"/></svg><div class="rc"><b>30%</b><small>今日</small></div></div>
+            <div class="hinfo"><h3>四级核心词汇</h3><p>今日已读 6 页</p><div class="mini"><div><b>12</b>连续翻阅</div><div><b>348</b>累计单词</div><div><b>86%</b>正确率</div></div></div>
+          </div>
+          <div class="cta">继续学习</div>
+          <div class="plans"><div class="plan"><b>14</b><small>待学新词</small></div><div class="plan"><b>8</b><small>待复习</small></div></div>
+          <div class="sect">待重读的书页</div>
+          <div class="chips"><span class="chip">模糊 12</span><span class="chip">不认识 5</span><span class="chip">错词本 9</span></div>
+          <div class="shelf"><div class="book"><em>CET-4</em><b>四级</b><s>100 词</s></div><div class="book"><em>CET-6</em><b>六级</b><s>100 词</s></div><div class="book"><em>KAOYAN</em><b>考研</b><s>100 词</s></div><div class="book"><em>IELTS</em><b>雅思</b><s>100 词</s></div><div class="book"><em>JOB</em><b>职场</b><s>60 词</s></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="verify">
+    <h2>落地核验</h2>
+    <div class="facts">
+      <div class="fact"><b>305</b><span>项测试全绿 · 0 失败</span></div>
+      <div class="fact"><b>0</b><span>行 app.css 被删改</span></div>
+      <div class="fact"><b>0</b><span>DOM / JS 逻辑 / SCHEMA 变更</span></div>
+      <div class="fact"><b>1</b><span>行 &lt;link&gt; 即可一键回退</span></div>
+    </div>
+    <p class="note">
+      皮肤层为独立覆盖文件 <code>www/css/folio.css</code>（310 行，浅色＋夜读两套调色盘），由 <code>index.html</code> 在 <code>app.css</code> 之后引入；
+      <code>build.ps1</code> 已重建 dist，<code>www</code> 与 <code>dist/www</code> 逐字节一致，dist 顶层无越界文件。
+      品牌层、首页文案与 <code>README.md §十九</code> 同步更新。WCAG 2.1 AA 对比度、44px 命中区、焦点双环、
+      <code>prefers-contrast</code> / <code>forced-colors</code> / <code>prefers-reduced-motion</code> 全部保留，并顺带解决「封面渐变白字对比度偏低」遗留项。
+      双击 <code>dist\背单词365.exe</code> 可看实际效果。
+    </p>
+  </div>
+
+  <footer>界面语汇示意 · 非运行截图　｜　Folio 01 · 2026-11-13</footer>
+</div>
+</body>
+</html>
