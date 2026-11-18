@@ -258,7 +258,7 @@ test('判定链：ctx 会话键入原形判对 → 例句补全高亮 + et 揭�
 });
 
 /* ---------- ⑤ db 写入同构：ctx 会话与普通 type 逐字节全等 ---------- */
-test('零写入快照：同一词在 ctx 与普通 type 各答对一次，落盘 JSON 同构、无新键、evts 恰 +1', () => {
+test('零写入快照：同一词在 ctx 与普通 type 各答对一次，除归因字段外落盘同构、无新键、evts 恰 +1（D-059）', () => {
   const a = seedDB();
   const vA = render('#/study?scope=review&mode=type&ctx=1', a.db);
   vA.typeAndSubmit('absorb');
@@ -271,12 +271,19 @@ test('零写入快照：同一词在 ctx 与普通 type 各答对一次，落盘
   const sb2 = vB.lastSaved();
   assert.ok(sa && sb2, '两次会话都应发生落盘');
   // 13 位时间戳（evts.t / rec.last 等取 Date.now()）两次运行必然不同 → 归零后再比；其余字段（含结构）必须逐字节一致
-  const ja = JSON.stringify(sa).replace(/\d{13}/g, '0');
-  const jb = JSON.stringify(sb2).replace(/\d{13}/g, '0');
-  assert.equal(ja, jb, 'ctx 与 type 的落盘 db 应同构（byType 零写入、无新键）');
+  // D-058/D-059：ctx 会话记 'ctx'、普通 type 记 'type'——归因字段按设计不同，
+  // 剔除该字段后其余仍须逐字节同构（byType 零写入、无新键），保留原断言的约束力。
+  const oa = JSON.parse(JSON.stringify(sa));
+  const ob = JSON.parse(JSON.stringify(sb2));
+  oa.words['w::absorb'].evts[0].type = '<attrib>';
+  ob.words['w::absorb'].evts[0].type = '<attrib>';
+  const ja = JSON.stringify(oa).replace(/\d{13}/g, '0');
+  const jb = JSON.stringify(ob).replace(/\d{13}/g, '0');
+  assert.equal(ja, jb, '除归因字段外，ctx 与 type 的落盘 db 应同构（byType 零写入、无新键）');
   const rec = sa.words['w::absorb'];
   assert.equal(rec.evts.length, 1, 'evts 恰 +1 条');
-  assert.equal(rec.evts[0].type, null, 'evts.type 仍为 null（D-038③）');
+  assert.equal(rec.evts[0].type, 'ctx', 'ctx 会话记 ctx 归因（D-058）');
+  assert.equal(sb2.words['w::absorb'].evts[0].type, 'type', '普通 type 会话记 type 归因（D-058）');
   assert.equal(Object.keys(sa).sort().join(','), Object.keys(JSON.parse(jb)).sort().join(','), '顶层键集一致');
   assert.equal(Core.SCHEMA, 3, 'SCHEMA 恒 3');
 });

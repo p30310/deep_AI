@@ -13,7 +13,7 @@ cd /e/WorkBudy_WorkSpace
 node verify.mjs          # 一键跑 4 条门禁并校验期望值，应输出 PASS
 ```
 
-`verify.mjs` 会检查：语法 4 文件、全量单测 **298 项 0 失败**、`check-data` 460 词、`qa_independent_verify` 34/0。任何一项不达标会直接指出来。
+`verify.mjs` 会检查：语法 4 文件、全量单测 **304 项 0 失败**、`check-data` 460 词、`qa_independent_verify` 34/0。任何一项不达标会直接指出来。
 
 **应用怎么开**：双击 `word365/index.html` 即可（零构建、零依赖、零安装）。Chrome/Edge 下 `file://` 的 localStorage 一直可用——本项目就是这么用的；换浏览器需实测。
 
@@ -102,7 +102,7 @@ node verify.mjs          # 一键跑 4 条门禁并校验期望值，应输出 P
 | #026 | **例句语境练习**（`type` 子模式 `ctx=1`，双命中降级） |
 | #027 | **长期答对情况**（纯分析层只读观测，30 天窗口） |
 
-当前：**24 测试文件 / 298 项 0 失败**、460 词、qa 34/0。
+当前：**25 测试文件 / 304 项 0 失败**、460 词、qa 34/0。
 
 ---
 

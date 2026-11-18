@@ -1402,6 +1402,14 @@
   }
 
   /** 评级 + 推进 + 撤销快照 */
+  /** #028 练法归因（D-058）：listen/ctx 都是 mode='type' 下的子模式标志，须派生命名；listen 优先 */
+  function attributionMode(s) {
+    if (!s) { return null; }
+    if (s.listen === 1) { return 'listen'; }
+    if (s.ctx === 1) { return 'ctx'; }
+    return s.mode || null;
+  }
+
   function doRate(rating) {
     var s = state.session;
     if (!s || s.finished) { return; }
@@ -1412,7 +1420,7 @@
     var e = s.words[s.idx];
     var key = Core.wordKey(e.w);
     var wasNewWord = !db.words[key]; // 热身词注入时已跳过已存在记录，故必为新词（wasFresh）
-    var snap = Core.rateWord(db, key, rating);
+    var snap = Core.rateWord(db, key, rating, attributionMode(s));
     if (!snap) { return; }
     // 缺口 C：热身词评级不计入新词额度（仍正常写该词进度）
     if (e.warmup && wasNewWord && db.days[snap.dayKey]) {
@@ -1642,7 +1650,7 @@
     var t = Date.now();
     if (t - s.lastClick < 180) { s.lastClick = t - 200; } // 输入提交不受防误触限制
     var e = s.words[s.idx];
-    var snap = Core.rateWord(db, Core.wordKey(e.w), rating);
+    var snap = Core.rateWord(db, Core.wordKey(e.w), rating, attributionMode(s));
     if (!snap) { return; }
     Core.updateLastSeen(db); // C-AC7：每次作答刷新 lastSeen + 积压计数
     snap.rating = rating;

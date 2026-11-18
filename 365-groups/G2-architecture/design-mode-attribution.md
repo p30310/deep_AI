@@ -5,7 +5,7 @@
 ## 0. 三条最容易实现分歧的裁决（先读）
 
 1. **归一在 `core.js` 内一处完成，非法一律写 `type:null`**（不是拒绝写入、不抛错）。`rateWord` 第 4 参非法（含 `undefined`）→ `null` → 三参调用逐字段等价；不在 `app.js` 做 try/catch，也不因非法值跳过 `evts.push`（跳过会丢作答历史）。
-2. **取值表达式写死为 `s.listen === 1 ? 'listen' : s.ctx === 1 ? 'ctx' : s.mode`（G0 终裁，与 G1 PRD 一致）**：`s.listen`/`s.ctx` 均为数字 `1/0`（`app.js:1148` / `1152`），不是 mode 字符串；listen 与 ctx 会话的 `s.mode` 都是 `'type'`，故必须优先读标志位，否则二者塌缩进 `type`。优先级 listen > ctx > s.mode，与 `app.js:1152`（listen 优先、互斥）及 D-052⑤ 一致；**listen 与 ctx 互斥由 `app.js:1152` 保证，故优先序不影响结果**。**不新增会话字段、不改 URL 解析、不改 `buildSession`**。
+2. **取值表达式写死为 `s.listen === 1 ? 'listen' : s.ctx === 1 ? 'ctx' : s.mode`（G0 终裁，与 G1 PRD 一致）**：`s.listen`/`s.ctx` 均为数字 `1/0`（`app.js:1148` / `1152`），不是 mode 字符串；listen 与 ctx 会话的 `s.mode` 都是 `'type'`，故必须优先读标志位，否则二者塌缩进 `type`。优先级 listen > ctx > s.mode，与 `app.js:1152`（listen 优先、互斥）及 D-052⑤ 一致；**listen 与 ctx 互斥由 `app.js:1152` 保证，故优先序不影响结果**。**不新增会话字段、不改 URL 解析、不改 `buildSession`**。**听写归因塌缩风险＝已消除**：消除方式＝三分支派生（listen 分支独立产出 `'listen'`），六值枚举全部可实际落值。
 3. **合法集合＝六种具体练法标签**（`flash/type/choice/match/listen/ctx`），不做「认/产出」二类粗分；G1 PRD 的归因叙事维度不替代落库取值。若 G1 PRD 给出不同枚举，以 G0 汇总裁为准，只需改 `MODE_LABELS_ATTRIB` 一处常量。
 
 ## 1. 精确签名与参数归一（写死）

@@ -178,7 +178,13 @@
    * @param {string} rating 'know' | 'fuzzy' | 'unknown'
    * @returns {Object|null} undo 快照 {key, rec, absent, dayKey, day}
    */
-  function rateWord(db, key, rating) {
+  /** #028 练法归因（D-057/D-058）：第 4 参可选；合法标签归一时只在此处收口，app.js 不判错 */
+  var MODE_LABELS_ATTRIB = ['flash', 'type', 'choice', 'match', 'listen', 'ctx'];
+  function attribMode(value) {
+    return (typeof value === 'string' && MODE_LABELS_ATTRIB.indexOf(value) >= 0) ? value : null;
+  }
+
+  function rateWord(db, key, rating, mode) {
     var absent = !db.words[key];
     if (absent) {
       db.words[key] = newRecord(key.indexOf('w::') === 0 ? key.slice(3) : key);
@@ -233,14 +239,15 @@
 
     // #015（叠加式记忆强度引擎 · 观测层）：评级成功以加法写一条逐次事件。
     // 三分支对 lvl/due/st/wfix/wrong 的既有落库规则零改动；interval 直接读 rec.due - t
-    // （不重算 ladder，保证事件与真实落库 due 严格一致）；type 恒 null（D-038③ 不扩大签名）。
+    // （不重算 ladder，保证事件与真实落库 due 严格一致）。
+    // #028（D-058）：type 由可选第 4 参归因；缺省/非法一律 null → 三参调用逐字段等价旧行为。
     // snap.rec 在三分支之前克隆，故 undoRate 整体还原时本次事件天然回滚（D-038① OP-01）。
     if (!Array.isArray(rec.evts)) { rec.evts = []; }
     rec.evts.push({
       t: t,
       rating: rating,
       interval: rec.due - t,
-      type: null
+      type: attribMode(mode)
     });
 
     return snap;
