@@ -185,16 +185,16 @@
 
 ## 6. 未决问题处置状态（G1 PRD ↔ G2 契约 design-s2.md v1.1 会签后）
 
-> 编号沿用本 PRD 初版 U1~U6；G2 契约 §9 另有 U1~U7 编号，映射：G2-U1↔本文 U1、G2-U2↔本文 U3（开关部分）、G2-U3/U4↔本文 U4、G2-U5↔本文 U5、G2-U6↔本文 U6、G2-U7↔本文 U2。已会签消解的不必再上 G0；**仍待 G0 终裁的仅三项**（见本节末）。
+> 编号沿用本 PRD 初版 U1~U6；G2 契约 §9 另有 U1~U7 编号，映射：G2-U1↔本文 U1、G2-U2↔本文 U3（开关部分）、G2-U3/U4↔本文 U4、G2-U5↔本文 U5、G2-U6↔本文 U6、G2-U7↔本文 U2。已会签消解的不必再上 G0；**零项待 G0**（U1/U2/U6 均已由 D-071/D-072/D-073 闭合，见本节末）。
 
-- **U1 · 临界窗口阈值 / 临界程度标量（部分未决，G0）**：G2 已定 `q=L/newIvl`、`qLo=0.5/qHi=2` 四档并写死 q 档→类别映射（`q<qLo→justDue`、`qLo≤q≤qHi→critical`、`q>qHi→overdue`、`wrong>0→wrongBack`；无 s1 / 第 4 档归 `fallback`，不参与临界优先断言），G1 会签公式与映射；`seg` 仅作 `intervalSeg` 同源事实、不进核心公式。**仅阈值数值 qLo/qHi 仍待 G0 终裁**，不臆造。
-- **U2 · 回归首日上限与 `rebuildCap=40`（G0 终裁，默认取①）**：G2 实跑 `computeDailyBudget`：`fresh=5→12 / 10→23 / 15→35 / 20→47`（封顶 60），确认 `fresh≤15` 时 `reviewTarget<40` 冲突属实（G2 v1.0 曾用 `40≤reviewLimit(60)` 论证，违反 K5，已自纠）。契约 §9 U7 登记两选项：**① 回归态「每日上限」= `rebuildCap=40`（推荐，守 C6/K5 零改动，本卡默认）**；② 叠加层按 `min(rebuildCap,reviewTarget)` 硬截断（须改 `rebuildWords`，与卡片禁令冲突，须 G0 明确授权）。G1 同意默认①，M2.1 的 `U` 按①=40 判等（`queue.length===40===U`）。
+- **U1 · 临界窗口阈值 / 临界程度标量（已闭合 · D-071）**：G2 已定 `q=L/newIvl`、`qLo=0.5/qHi=2` 四档并写死 q 档→类别映射（`q<qLo→justDue`、`qLo≤q≤qHi→critical`、`q>qHi→overdue`、`wrong>0→wrongBack`；无 s1 / 信息不足 → `justDue` 安全缺省（**不新增第 5 类**）），G1 会签公式与映射；`seg` 仅作 `intervalSeg` 同源事实、不进核心公式。阈值数值 `qLo=0.5/qHi=2` 已由 D-071 拍板（须真实数据回填路线 C9），不臆造。
+- **U2 · 回归首日上限与 `rebuildCap=40`（已闭合 · D-072，取选项①）**：G2 实跑 `computeDailyBudget`：`fresh=5→12 / 10→23 / 15→35 / 20→47`（封顶 60），确认 `fresh≤15` 时 `reviewTarget<40` 冲突属实（G2 v1.0 曾用 `40≤reviewLimit(60)` 论证，违反 K5，已自纠）。D-072 已终裁：**① 回归态「每日上限」= `rebuildCap=40`（守 C6/K5 零改动）**；否决② `min(rebuildCap,reviewTarget)` 硬截断（会改 `rebuildWords`）。M2.1 的 `U` 按①=40 判等（`queue.length===40===U`）。
 - **U3 · 开关落点 + L 口径（已会签消解）**：开关 `settings.criticalSort` off/on、缺省 OFF、非法归一 OFF、老库 `ensureSchema` 幂等补、SCHEMA 恒 3，G2 已写死。**L 必须取 `dueOfWord(db,rec)`，不取 `rec.due`**——G1 撤回初版「建议只读 `rec.due`」：strengthMode ON 时 `dueOfWord=strengthDue`，而 backlog 成员按 `dueOf` 筛选（L362），取 `rec.due` 会口径错配。本 PRD §2.0 原定义即为 `t−dueOfWord(db,rec)`，一致；不再列未决。
 - **U4 · 理由展示位与回退形态（已会签消解）**：新理由为独立只读查询（`explainQueueItem`），**不覆盖 `todayPlan.text`**；`phrases.js:38/46` 基线串（追上 / 旧账）原样保留、**不在 S2 中性约束范围**；OFF 时「基线形态」＝不返回 S2 理由（`null` / 无该字段），`todayPlan.text` 自然回基线。M3.3 / M4.4 据此判等。
 - **U5 · 「词价值」排序因子（已写死，非未决）**：正常态复合键仅 `wrongBack` 经 rank 入序，`cet4`/`lvl` 不引入（守不新增行为）；类别序 `critical<wrongBack<justDue<overdue`，「临界最小」硬约束保留。
-- **U6 · 护栏口径与容差（部分未决，G0）**：`worse|equal|better` 三态已写死；四护栏分母 / 观察窗与容差阈值仍待 G0 定、不臆造，日均时长只能按 `estMinutes` 估算；坚持只判不恶化、不设提升目标（K4）。
+- **U6 · 护栏口径与容差（已闭合 · D-073）**：`worse|equal|better` 三态已写死；四护栏容差按 D-073 分粒度：假认识率/复习积压率/中途退出率计数型容差=0（分母 0→`null`），日均时长仅 `estMinutes` 估算、差值 ≤1 分钟为 equal（禁称「实测」），观察窗前后各最近 7 自然日（有效日 <3→`null` 标样本不足）、`worse` 触发 AC4 回退；坚持只判不恶化、不设提升目标（K4）。
 
-**仍待 G0 终裁仅三项**：① `qLo/qHi` 阈值数值（U1）；② 回归态每日上限选项①/②（U2，默认①）；③ 四护栏容差阈值（U6）。其余 G1/G2 已会签，G3 按契约实现即可。
+**零项待 G0**：① `qLo/qHi` 已由 D-071 拍板（U1）；② 回归态每日上限取 `rebuildCap=40` 已由 D-072 拍板（U2）；③ 四护栏容差已由 D-073 拍板（U6）。G1/G2 全项会签，G3 按契约 v1.5 + D-070~D-073 实现即可。
 
 ---
 
@@ -215,6 +215,7 @@
 
 | 版本 | 日期 | 内容 |
 |---|---|---|
+| **v1.1** | **2026-11-19** | G10 `R-032` 复核 G32-F01（P3）精确化：§2.0「信息不足兜底」、M1.1、§6 U1 三处 `fallback` 措辞统一改为「信息不足 → `justDue` 安全缺省（D-071，不新增第 5 类）」，与契约 v1.5 及 D-071 一致，类别值域恒四值、AC 判据语义不变。§6 状态同步终裁：U1/U2/U6 由「待 G0」改为已闭合（D-071/D-072/D-073），加「零项待 G0」。头部版本 v1.0→v1.1。其余逐字不动。 |
 | **v1.0** | **2026-11-19** | 首版。基于 G0 08:59 实测并经 G1 独立复核（`verify.mjs` EXPECT 27 文件 / 331 项 / 460 词 / QA 34/0；HEAD `e4839a6`）；产出范围声明、四类来源分类规则（仅用落盘事实）、S2-AC1~AC5 五条 Given/When/Then + 机器判据（A/M 标注）、中性理由逐字表与禁语表、13 条验收清单、6 个 G2 未决问题、明确不做清单。AC 为上游路线 §5/§6/§8、矩阵 §2/§6/§7 在 A 仓库的落地映射，未新增编号、未改阶段门 S2-AC1∧S2-AC4。**同日 G1↔G2 会签补记（不改版本号）**：§2.2 增「层次边界消歧」段（M2.2 只约束派生执行队列、持久化包逐字不动，消解 U6 分歧）；§6 改为处置状态——U3（L 取 `dueOfWord`，G1 撤回 `rec.due` 建议）、U4（新理由不覆盖 `todayPlan.text`）、U5（仅 `wrongBack` 入序）已会签消解，仅 U1 阈值 / U2 上限选项 / U6 容差三项留 G0 终裁；M2.1/M3.5/M4.4 与 §0 术语表同步。 |
 
 *本 PRD 是卡片 #032 的产品验收真源；与上游冲突时以上游主文档裁决为准，A 仓库字段事实以本卡读码复核为准；函数命名与阈值常量以 G2 契约终裁为准。*
