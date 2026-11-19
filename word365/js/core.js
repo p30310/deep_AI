@@ -24,6 +24,24 @@
     segments: ['new', '10m', '1d', '2d', '4d', '7d', '15d', '30d', '60d', 'other']
   };
 
+  /**
+   * #032 阶段二 · 临界优先排序契约（D-070/D-071，单一真源）。
+   * sources/rank 恰四值：禁止新增第 5 类；信息不足一律安全缺省 justDue。
+   * q 档位映射闭区间：q<qLo→justDue、qLo≤q≤qHi→critical（含边界）、q>qHi→overdue。
+   */
+  var CRITICAL_CONTRACT = {
+    switchKey: 'criticalSort',
+    on: 'on',
+    off: 'off',
+    sources: ['critical', 'wrongBack', 'justDue', 'overdue'],
+    rank: { critical: 0, wrongBack: 1, justDue: 2, overdue: 3 },
+    qLo: 0.5,
+    qHi: 2,
+    qFallback: 0,
+    tieKey: 'wordKey',
+    map: { below: 'justDue', within: 'critical', above: 'overdue', wrong: 'wrongBack', unknown: 'justDue' }
+  };
+
   /** 单次作答预计耗时（秒），±300 词收敛公式中用于估算每日时长（I-AC3） */
   var SEC_PER_WORD = 35;
 
@@ -75,7 +93,8 @@
       autoRebalance: true,     // 每周再平衡是否自动调量（Open-5 默认 true）
       confidenceWarmup: true,  // 缺口 C：首组是否注入 2 个信心热身词（默认开）
       strengthMode: 'off',     // #015 叠加式记忆强度引擎开关：缺省 OFF（D-037/D-038；写侧默认）
-      strengthFrom: 0          // #020 逐词接管起点（D-043）：>0 时只有 last>=该时刻的词交给强度层；0=全部接管（旧行为/兼容）
+      strengthFrom: 0,         // #020 逐词接管起点（D-043）：>0 时只有 last>=该时刻的词交给强度层；0=全部接管（旧行为/兼容）
+      criticalSort: 'off'      // #032 阶段二（D-070）：临界优先排序开关；缺省 off=到期升序基线，可逐字段回退
     };
   }
 
@@ -354,6 +373,11 @@
       var rset = {};
       db.returnGuard.rebuildWords.forEach(function (k) { rset[k] = 1; });
       rebuildWords = records.filter(function (r) { return rset[wordKey(r.w)]; });
+      /* #032（D-070/D-071）：只重排派生执行队列；持久化包 db.returnGuard.rebuildWords 与
+       * buildRebuildPack 零改动。OFF 保持 records 派生顺序 = 固定基线（S2-AC4 可回退）。 */
+      if (s.criticalSort === 'on') {
+        rebuildWords = criticalPriority(rebuildWords, { db: db, at: t, order: 'rebuildL' });
+      }
       reviews = []; freshs = []; mode = 'rebuild'; pausedFresh = true;
       text = '欢迎回来，帮你重新排好了，今天 18 分钟就能追上';
     } else {
@@ -364,7 +388,9 @@
       if (backlog.length >= s.pressureThreshold) {
         // —— 态 2：高压力熔断（非回归，仅暂停新词）——
         mode = 'pause'; pausedFresh = true;
-        reviews = backlog.sort(function (a, b) { return dueOf(a) - dueOf(b); }).slice(0, s.reviewLimit);
+        reviews = s.criticalSort === 'on'
+          ? criticalPriority(backlog, { db: db, at: t }).slice(0, s.reviewLimit)
+          : backlog.sort(function (a, b) { return dueOf(a) - dueOf(b); }).slice(0, s.reviewLimit);
         freshs = [];
         text = '今天先把旧账清了，明天加新词';
       } else {
@@ -372,7 +398,9 @@
         var bud = computeDailyBudget(s, db.plan && db.plan.derivedAt ? db.plan.dailyFresh : 0);
         var day = db.days[dk] || { fresh: 0 };
         var freshQuota = Math.max(0, bud.freshTarget - (day.fresh || 0));
-        reviews = backlog.sort(function (a, b) { return dueOf(a) - dueOf(b); }).slice(0, bud.reviewTarget);
+        reviews = s.criticalSort === 'on'
+          ? criticalPriority(backlog, { db: db, at: t }).slice(0, bud.reviewTarget)
+          : backlog.sort(function (a, b) { return dueOf(a) - dueOf(b); }).slice(0, bud.reviewTarget);
         freshs = records.filter(function (r) { return r.reps === 0 && !r.graduated; }).slice(0, freshQuota);
       }
     }
@@ -578,6 +606,8 @@
     if (s.confidenceWarmup == null) { s.confidenceWarmup = true; }
     // #015 步骤 A：strengthMode 缺失或非法（非 off/on）→ 归一 'off'（读侧兜底，缺省 OFF）
     if (s.strengthMode !== 'on' && s.strengthMode !== 'off') { s.strengthMode = 'off'; }
+    // #032（D-070）：criticalSort 非法/缺失 → 'off'（读侧兜底 + 写侧归一；顶层键集与 SCHEMA 不变）
+    if (s.criticalSort !== 'on' && s.criticalSort !== 'off') { s.criticalSort = 'off'; }
     // #020 步骤 A'：strengthFrom 缺失/非法 → 0（=「全部接管」旧行为；UI 开启时写入真实时刻，
     // 语义见 dueOf 注释；不读 now()，保证 ensureSchema 幂等且确定）
     if (typeof s.strengthFrom !== 'number' || !isFinite(s.strengthFrom) || s.strengthFrom < 0) { s.strengthFrom = 0; }
@@ -2252,12 +2282,114 @@
     return out;
   }
 
+  /* ==================== #032 阶段二：临界优先排序（D-070/D-071） ====================
+   * 全部纯只读：不读 now()、不写 db、不改 s1/evts/due/lvl/st，同输入恒同输出。
+   * 排序只发生在 todayPlan 选定成员之后，不改变「选多少 / 哪些态 / 阈值 / 持久化包」。 */
+
+  /** 取词条 s1 中末条有限且 >0 的 newIvl（阶段一已落的排定间隔，毫秒） */
+  function tailNewIvl(s1) {
+    if (!Array.isArray(s1)) { return 0; }
+    for (var i = s1.length - 1; i >= 0; i--) {
+      var e = s1[i];
+      var v = e && e.newIvl;
+      if (typeof v === 'number' && isFinite(v) && v > 0) { return v; }
+    }
+    return 0;
+  }
+
+  /** 逾期量 L（毫秒），单点取 dueOfWord 与 backlog 筛选同源；无效返回 -1 */
+  function criticalL(rec, db, at) {
+    if (!rec || typeof rec !== 'object') { return -1; }
+    var due = dueOfWord(db, rec);
+    if (typeof due !== 'number' || !isFinite(due) || due <= 0) { return -1; }
+    return Math.max(0, at - due);
+  }
+
+  /** 排定间隔 I（毫秒）：优先 s1.newIvl，其次 due-last；皆不可得返回 0（安全缺省） */
+  function criticalI(rec) {
+    var ivl = tailNewIvl(rec && rec.s1);
+    if (ivl > 0) { return ivl; }
+    var last = rec && rec.last;
+    var due = rec && rec.due;
+    if (typeof last === 'number' && isFinite(last) && last > 0 &&
+        typeof due === 'number' && isFinite(due)) {
+      var alt = due - last;
+      if (alt > 0) { return alt; }
+    }
+    return 0;
+  }
+
+  /** 逾期比 q = L / I；信息不足取 qFallback(0) → 自然落 justDue（不新增第 5 类） */
+  function criticalQ(rec, db, at) {
+    var L = criticalL(rec, db, at);
+    var I = criticalI(rec);
+    if (L < 0 || !(I > 0)) { return CRITICAL_CONTRACT.qFallback; }
+    return L / I;
+  }
+
+  /** 四类来源分类（first-match）；输出恒为 sources 之一 */
+  function classifyDueSource(rec, db, at) {
+    var C = CRITICAL_CONTRACT;
+    if (!rec || typeof rec !== 'object') { return C.map.unknown; }
+    if (typeof rec.due !== 'number' || !isFinite(rec.due) || rec.due <= 0) { return C.map.unknown; }
+    var t = (typeof at === 'number' && isFinite(at)) ? at : 0;
+    if (rec.wrong > 0) { return C.map.wrong; }
+    var q = criticalQ(rec, db, t);
+    if (q < C.qLo) { return C.map.below; }
+    if (q > C.qHi) { return C.map.above; }
+    return C.map.within;
+  }
+
+  /**
+   * 确定性复合键排序（置换返回新数组，不改入参/不改 rec）。
+   * normal  : [rank(source), -q, dueOfWord, wordKey]
+   * rebuildL: [-L, dueOfWord, wordKey]（回归派生执行队列，按 L 降序）
+   */
+  function criticalPriority(recs, opts) {
+    var arr = Array.isArray(recs) ? recs.slice() : [];
+    var o = opts || {};
+    var db = o.db;
+    var at = (typeof o.at === 'number' && isFinite(o.at)) ? o.at : 0;
+    var order = (o.order === 'rebuildL') ? 'rebuildL' : 'normal';
+    function Lof(r) { var v = criticalL(r, db, at); return v < 0 ? 0 : v; }
+    function rankOf(r) {
+      var k = classifyDueSource(r, db, at);
+      var v = CRITICAL_CONTRACT.rank[k];
+      return (typeof v === 'number') ? v : 9;
+    }
+    function qOf(r) { return criticalQ(r, db, at); }
+    function dueOf(r) { var v = dueOfWord(db, r); return (typeof v === 'number' && isFinite(v)) ? v : 0; }
+    function keyOf(r) { return wordKey(r && r.w); }
+    arr.sort(function (a, b) {
+      if (order === 'rebuildL') {
+        var la = Lof(a), lb = Lof(b);
+        if (la !== lb) { return lb - la; }          // L 降序：最可能已遗忘优先
+      } else {
+        var ra = rankOf(a), rb = rankOf(b);
+        if (ra !== rb) { return ra - rb; }          // rank 升序：临界(0)最前
+        var qa = qOf(a), qb = qOf(b);
+        if (qa !== qb) { return qb - qa; }          // -q 升序 = 逾期比大者先
+      }
+      var da = dueOf(a), dbv = dueOf(b);
+      if (da !== dbv) { return da - dbv; }
+      var ka = keyOf(a), kb = keyOf(b);
+      if (ka < kb) { return -1; }
+      if (ka > kb) { return 1; }
+      return 0;
+    });
+    return arr;
+  }
+
   var Core = {
     DB_KEY: DB_KEY,
     SCHEMA: SCHEMA,
     LADDER_DAYS: LADDER_DAYS,
     // #031 阶段一（D-065）：观测契约与 5 个纯函数（追加导出，既有导出零改动）
     INTERVAL_CONTRACT: INTERVAL_CONTRACT,
+    // #032 阶段二（D-070）：临界契约与 2 个纯函数（追加导出，既有导出零改动）
+    CRITICAL_CONTRACT: CRITICAL_CONTRACT,
+    classifyDueSource: classifyDueSource,
+    criticalPriority: criticalPriority,
     collectS1Events: collectS1Events,
     intervalSeg: intervalSeg,
     baselineReport: baselineReport,

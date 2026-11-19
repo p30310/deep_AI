@@ -246,12 +246,12 @@ test('S1-AC5 SCHEMA===3、ensureSchema 不增键、顶层键集不变、evts 非
 });
 
 /* ============ 14 AC5：新测试独立文件 + 门禁 EXPECT 同步 ============ */
-test('S1-AC5 本套件为独立新文件；verify.mjs EXPECT 27 文件 / 331 项已同步', () => {
+test('S1-AC5 本套件为独立新文件（EXPECT 具体数字由 verify.mjs 自身校验，D-074）', () => {
   assert.equal(path.basename(HERE), 'tests');
   assert.equal(path.basename(fileURLToPath(import.meta.url)), 'core.test.s1.mjs');
   const vm = fs.readFileSync(path.resolve(HERE, '..', '..', 'verify.mjs'), 'utf8');
-  assert.ok(/testFiles:\s*27\b/.test(vm), 'EXPECT.testFiles=27');
-  assert.ok(/testItems:\s*331\b/.test(vm), 'EXPECT.testItems=331');
+  assert.match(vm, /testFiles:\s*\d+/, 'verify.mjs 必有 EXPECT.testFiles');
+  assert.match(vm, /testItems:\s*\d+/, 'verify.mjs 必有 EXPECT.testItems');
 });
 
 /* ============ 15 AC6：第二次 plannedDue=第一次 due，lateMs 公式 ============ */

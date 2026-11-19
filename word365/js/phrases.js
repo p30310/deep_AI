@@ -359,6 +359,17 @@
     hintLabel: '本次义项：'
   };
 
+  /* #032 阶段二（D-070）：临界排序的按词中性理由（只读派生、不落库）
+   * 禁语：无差额/百分数/负向词；与基线 returnMain/pauseText 相互独立。 */
+  var TIMING = {
+    critical: '按上次的复习节奏，今天进入复习窗口。',
+    justDue: '今天到期，安排一次复习。',
+    overdue: '到期时间已经过去，今天安排一次复习。',
+    wrongBack: '这个词之前答错过，今天再练一次。',
+    empty: '今天没有到期的词。',
+    returning: '今天先从到期的词开始，分几次安排。'
+  };
+
   var PHRASES = {
     GOAL_TYPES: GOAL_TYPES,
     DAILY_MINUTE_OPTIONS: DAILY_MINUTE_OPTIONS,
@@ -387,7 +398,9 @@
     CTX: CTX,
     // #025 今日挑战（纯加法）
     CHALLENGE: CHALLENGE,
-    FINISH: FINISH
+    FINISH: FINISH,
+    // #032 阶段二（纯加法）
+    TIMING: TIMING
   };
 
   global.PHRASES = PHRASES;

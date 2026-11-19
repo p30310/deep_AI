@@ -17,8 +17,8 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace
 const APP = path.join(ROOT, 'word365');
 
 const EXPECT = {
-  testFiles: 27,
-  testItems: 331,   // 含 check-data / qa 各 1 项（#031 +20：core.test.s1 观测层套件）
+  testFiles: 28,
+  testItems: 353,   // 含 check-data / qa 各 1 项（#032 +22：core.test.s2 临界排序套件）
   words: 460,
   qaPass: 34,
 };
